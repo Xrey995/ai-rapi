@@ -1,3 +1,6 @@
+🇷🇺 Русский | [🇬🇧 English](README_EN.md)
+
+---
 # Ai RAPI Unlimited LLMs
 ### OpenAI-Compatible API Gateway — Полный безлимит по токенам
 
