@@ -1,3 +1,6 @@
+[🇷🇺 Русский](README.md) | 🇬🇧 English
+
+---
 # Ai RAPI Unlimited LLMs
 ### OpenAI-Compatible API Gateway — Unlimited Tokens, Fixed Price
 
