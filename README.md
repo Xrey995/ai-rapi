@@ -8,7 +8,7 @@
 
 ![Ai RAPI](https://img.shields.io/badge/Ai_RAPI-Unlimited_Tokens-orange?style=for-the-badge)
 ![OpenAI Compatible](https://img.shields.io/badge/OpenAI-Compatible-green?style=for-the-badge)
-![Models](https://img.shields.io/badge/48_моделей-GPT_•_Claude_•_Llama_•_Cohere-purple?style=for-the-badge)
+![Models](https://img.shields.io/badge/160%2B_моделей-GPT_•_Claude_•_Gemini_•_Llama_•_Cohere-purple?style=for-the-badge)
 
 **Единый OpenAI-совместимый шлюз к лучшим AI-моделям без лимита токенов**
 
@@ -48,7 +48,7 @@
 
 ## 🚀 Что такое Ai RAPI
 
-**Ai RAPI** — OpenAI-совместимый API-шлюз для доступа к 48 топовым AI-моделям через единый endpoint.
+**Ai RAPI** — OpenAI-совместимый API-шлюз для доступа к **160+ топовым AI-моделям** через единый endpoint.
 
 ### ♾️ Главное преимущество — полный безлимит по токенам
 
@@ -56,7 +56,7 @@
 
 > **Контекстное окно шлюза — 65 536 токенов.**
 >
-> Ai RAPI проксирует запросы к провайдерам (Perplexity, Cohere, HuggingFace, Nvidia) через единый gateway. Поскольку шлюз передаёт весь контекст диалога провайдеру в одном запросе, размер контекстного окна шлюза равен максимальному размеру этого запроса. Значение 65 536 токенов — производственный cap, установленный по результатам нагрузочного тестирования: провайдеры начинают возвращать ошибки при стабильной нагрузке с контекстом выше этого порога.
+> Ai RAPI проксирует запросы к провайдерам (Perplexity, Cohere, HuggingFace, Nvidia, CAPI) через единый gateway. Поскольку шлюз передаёт весь контекст диалога провайдеру в одном запросе, размер контекстного окна шлюза равен максимальному размеру этого запроса. Значение 65 536 токенов — производственный cap, установленный по результатам нагрузочного тестирования: провайдеры начинают возвращать ошибки при стабильной нагрузке с контекстом выше этого порога.
 >
 > Параметры, которые шлюз передаёт AI-агентам автоматически через `GET /v1/models`:
 > - `context_length` = **65 536** — полный размер контекстного окна (вход + выход)
@@ -69,7 +69,8 @@
 | Тарификация | За токены (~$2.5–$10 / 1M) | За токены (~$3–$15 / 1M) | ✅ Фиксированная подписка, потребление токенов не лимитируется |
 | Контекстное окно | 128 000 токенов | 200 000 токенов | 65 536 токенов |
 | Макс. длина ответа (`max_tokens`) | 16 384 токена | 8 192 токена | ✅ **32 768 токенов** |
-| Количество моделей | Только OpenAI | Только Claude | ✅ 48 моделей, 4 провайдера |
+| Количество моделей | Только OpenAI | Только Claude | ✅ **160+ моделей, 5 провайдеров** |
+| Function Calling (Tools) | ✅ | ✅ | ✅ |
 | Передача `context_length` агентам | ✅ | ✅ | ✅ Автоматически |
 | Предсказуемость затрат | ❌ | ❌ | ✅ |
 
@@ -132,21 +133,36 @@ curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
 
 ## 🤖 Список моделей
 
-Endpoint `/models` публичный — авторизация **не требуется**. Актуальный список: **48 моделей, 4 провайдера**.
+Endpoint `/models` публичный — авторизация **не требуется**. Актуальный список: **160+ моделей, 5 провайдеров**.
 
 > **Все доступные модели — текстовые.** Vision и мультимодальные запросы в текущей версии не поддерживаются.
-> **Function calling (tools)** доступен **только для моделей провайдера Nvidia (префикс `NVI:`)**.
+> **Function calling (tools)** поддерживается моделями провайдеров **CAPI** и **Nvidia** (`NVI:`).
 
 ### Текущий список моделей
 
-| Провайдер | Примеры моделей | Кол-во |
-|-----------|----------------|--------|
-| **Perplexity** | `PER:gpt4o`, `PER:gpt41`, `PER:gpt5`, `PER:claude45sonnet`, `PER:claude40opus`, `PER:o3`, `PER:r1`, `PER:grok4` и др. | 38 |
-| **HuggingSpace** | `HUG:command-a`, `HUG:command-r`, `HUG:command-r-plus-08-2024` и др. | 5 |
-| **CohereForAI** | `COH:command-a-03-2025`, `COH:command-r-08-2024`, `COH:command-r-plus-08-2024` | 3 |
-| **Nvidia** ⚙ | `NVI:nvidia/llama-3.3-nemotron-super-49b-v1.5`, `NVI:qwen/qwen3-next-80b-a3b-instruct` | 2 |
+| Провайдер | Prefix | Примеры моделей | Кол-во | Tools |
+|-----------|--------|----------------|--------|-------|
+| **CAPI** 🆕 | _(без префикса)_ | `claude-opus-4-6`, `gpt-4o`, `gpt-4.1`, `gemini-2.5-flash`, `gemini-3-pro-preview`, `deepseek-r1`, `grok-4`, `qwen3-235b`, `llama4:maverick` | 160+ | ✅ |
+| **Perplexity** | `PER:` | `PER:gpt4o`, `PER:gpt41`, `PER:gpt5`, `PER:claude45sonnet`, `PER:claude40opus`, `PER:o3`, `PER:r1`, `PER:grok4` и др. | 38 | ❌ |
+| **HuggingSpace** | `HUG:` | `HUG:command-a`, `HUG:command-r`, `HUG:command-r-plus-08-2024` и др. | 5 | ❌ |
+| **CohereForAI** | `COH:` | `COH:command-a-03-2025`, `COH:command-r-08-2024`, `COH:command-r-plus-08-2024` | 3 | ❌ |
+| **Nvidia** ⚙ | `NVI:` | `NVI:nvidia/llama-3.3-nemotron-super-49b-v1.5`, `NVI:qwen/qwen3-next-80b-a3b-instruct` | 2 | ✅ |
 
-> Модели Nvidia отмечены значком `⚙` — только они поддерживают function calling (tools).
+> CAPI-модели используются **без префикса** — просто имя модели как есть. Nvidia-модели отмечены значком `⚙`.
+
+### Модели CAPI — ключевые семейства 🆕
+
+| Семейство | Модели |
+|-----------|--------|
+| **Anthropic Claude** | `claude-opus-4-6`, `claude-opus-4-5`, `claude-sonnet-4`, `claude-sonnet-4-5`, `claude-haiku-4-5`, `claude-haiku-4-5-20251001` |
+| **OpenAI GPT** | `gpt-4o`, `gpt-4.1`, `gpt-4.1-mini`, `gpt-4.1-nano`, `gpt-4o-mini`, `o1`, `o1-mini`, `o3-mini`, `o4-mini`, `gpt-5`, `gpt-5.1`, `gpt-5.2` |
+| **Google Gemini** | `gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-3-flash-preview`, `gemini-3-pro-preview` |
+| **DeepSeek** | `deepseek-chat`, `deepseek-chat-v3.1`, `deepseek-r1`, `deepseek-r1-250528`, `deepseek-reasoner` |
+| **xAI Grok** | `grok-3-beta`, `grok-3-mini-beta`, `grok-4`, `grok-4-fast` |
+| **Qwen** | `qwen3`, `qwen3-235b`, `qwen3-30b-a3b`, `qwen-max`, `qwen-plus`, `qwen-turbo` |
+| **Meta LLaMA** | `llama-3.3-70b-instruct`, `llama4:maverick`, `llama4:scout` |
+| **Mistral** | `mistral-medium-3`, `mistral-large-3:675b-cloud`, `devstral-2:123b-cloud` |
+| **Perplexity Sonar** | `sonar`, `sonar-pro`, `sonar-deep-research` |
 
 ### Linux / macOS
 
@@ -558,7 +574,7 @@ Lemonade — нативный n8n-пакет для работы с OpenAI-со�
    - **Credential:** `Ai-Rapi`
    - **Model:** `PER:gpt4o` или `PER:claude45sonnet`
 
-> ⚠️ **Tools в n8n:** если вам нужен AI Agent с инструментами (Code Tool, Calculator и др.), используйте исключительно модели **Nvidia** (`NVI:`). Остальные провайдеры tools не поддерживают.
+> ⚠️ **Tools в n8n:** если вам нужен AI Agent с инструментами (Code Tool, Calculator и др.), используйте модели **CAPI** (без префикса) или **Nvidia** (`NVI:`). Остальные провайдеры tools не поддерживают.
 
 #### Пример воркфлоу AI Agent
 
@@ -567,8 +583,8 @@ Telegram Trigger
   ↓
 AI Agent
   ├── Chat Model → Lemonade Chat Model
-  │   ├── Обычный чат:  PER:gpt4o / PER:claude45sonnet
-  │   └── С tools:      NVI:nvidia/llama-3.3-nemotron-super-49b-v1.5
+  │   ├── Обычный чат:  claude-opus-4-6 / gpt-4o / PER:claude45sonnet
+  │   └── С tools:      claude-opus-4-6 / NVI:nvidia/llama-3.3-nemotron-super-49b-v1.5
   ├── Memory    → Window Buffer Memory
   └── Tools     → Calculator, Wikipedia, Code Tool
   ↓
@@ -770,6 +786,7 @@ Return ONLY the final result in the exact format defined in CRITICAL OUTPUT FORM
 
 | Провайдер | Префикс | `system` поле | Рекомендуемый подход |
 |-----------|---------|--------------|---------------------|
+| CAPI | _(без префикса)_ | ✅ Работает | `system` + `user` или всё в `user` |
 | Perplexity | `PER:` | ⚠️ Не работает | Всё в `user` |
 | CohereForAI | `COH:` | ✅ Работает | `system` + `user` или всё в `user` |
 | HuggingSpace | `HUG:` | ⚠️ Нестабильно | Всё в `user` |
@@ -818,10 +835,15 @@ with httpx.stream(
 
 ## ⚙️ Function Calling (Tools)
 
-> **Важно:** function calling поддерживается **только моделями провайдера Nvidia** (префикс `NVI:`).
+> **Важно:** function calling поддерживается моделями провайдера **CAPI** (без префикса) и **Nvidia** (префикс `NVI:`).
 > Perplexity, Cohere и HuggingSpace tools **не поддерживают**.
 
-**Доступные модели с tools:**
+**Модели с tools:**
+
+*CAPI (рекомендуется — широкий выбор):*
+- `claude-opus-4-6`, `claude-sonnet-4-5`, `gpt-4o`, `gpt-4.1`, `gemini-3-pro-preview` и другие модели без префикса
+
+*Nvidia:*
 - `NVI:nvidia/llama-3.3-nemotron-super-49b-v1.5`
 - `NVI:qwen/qwen3-next-80b-a3b-instruct`
 
@@ -850,7 +872,7 @@ tools = [{
 }]
 
 response = client.chat.completions.create(
-    model="NVI:nvidia/llama-3.3-nemotron-super-49b-v1.5",  # только NVI!
+    model="claude-opus-4-6",  # CAPI или NVI — оба поддерживают tools
     messages=[{"role": "user", "content": "Какая погода в Москве?"}],
     tools=tools,
     tool_choice="auto"
@@ -871,7 +893,7 @@ curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
   -H "Authorization: Bearer rapi-ВАШ_КЛЮЧ" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "NVI:nvidia/llama-3.3-nemotron-super-49b-v1.5",
+    "model": "claude-opus-4-6",
     "messages": [{"role": "user", "content": "Какая погода в Москве?"}],
     "tools": [{
       "type": "function",
@@ -926,7 +948,7 @@ curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
 ## ❓ FAQ
 
 **Q: Почему модели дают плохие ответы на промпты, которые работали на OpenRouter?**
-A: OpenRouter подключён напрямую к официальным API производителей. Ai RAPI использует модели через провайдеров (Perplexity, Cohere и др.) — у каждого свои настройки и тонкая настройка модели. Чтобы нивелировать эти отличия, используйте универсальный подход: всё содержимое промпта в одно поле `user`, без отдельного `system`. Подробнее — в разделе [Промпт-инжиниринг](#️-промпт-инжиниринг-для-ai-rapi).
+A: Ai RAPI — это агрегатор, который маршрутизирует запросы к моделям, размещённым у разных **провайдеров** (CAPI, Perplexity, Cohere, HuggingSpace, Nvidia). — у каждого свои настройки и тонкая настройка модели. Чтобы нивелировать эти отличия, используйте универсальный подход: всё содержимое промпта в одно поле `user`, без отдельного `system`. Подробнее — в разделе [Промпт-инжиниринг](#️-промпт-инжиниринг-для-ai-rapi).
 
 **Q: Почему Perplexity-модели не следуют системному промпту?**
 A: Модели `PER:` не обрабатывают поле `system` так, как ожидается. Помещайте все инструкции (роль, задачу, формат ответа) в поле `user`.
@@ -953,7 +975,7 @@ A: С момента **первого запроса** к API, не с моме�
 A: Нет. Это публичный endpoint — ключ не нужен.
 
 **Q: Поддерживается function calling (tools)?**
-A: Только для моделей **Nvidia** (`NVI:`). Perplexity, Cohere и HuggingSpace tools не поддерживают.
+A: Да — для моделей **CAPI** (без префикса: `claude-opus-4-6`, `gpt-4o` и др.) и **Nvidia** (`NVI:`). Perplexity, Cohere и HuggingSpace tools не поддерживают.
 
 **Q: Поддерживаются vision / изображения?**
 A: Нет. В текущей версии доступны только текстовые модели.
