@@ -56,7 +56,7 @@ Unlike direct access to OpenAI, Anthropic or Google where every token is billed 
 
 > **Gateway context window — 32 768 tokens.**
 >
-> Ai RAPI proxies requests to providers (Perplexity, Cohere, HuggingFace, Nvidia, CAPI) through a unified gateway. Since the gateway forwards the entire conversation context to the provider in a single request, the gateway's context window equals the maximum size of that request. The 65 536-token value is a production cap established through load testing: providers begin returning errors under sustained load with context exceeding this threshold.
+> Ai RAPI proxies requests to providers (Perplexity, Cohere, HuggingFace, Nvidia, CAPI) through a unified gateway. Since the gateway forwards the entire conversation context to the provider in a single request, the gateway's context window equals the maximum size of that request. The 32 768-token value is a production cap established through load testing: providers begin returning errors under sustained load with context exceeding this threshold.
 >
 > Parameters the gateway exposes automatically via `GET /v1/models`:
 > - `context_length` = **32 768** — full context window size (input + output combined)
@@ -68,13 +68,13 @@ Unlike direct access to OpenAI, Anthropic or Google where every token is billed 
 |--|---|---|---|
 | Billing | Per token (~$2.5–$10 / 1M) | Per token (~$3–$15 / 1M) | ✅ Fixed subscription |
 | Context window | 128 000 tokens | 200 000 tokens | 32 768 tokens |
-| Max response length (`max_tokens`) | 16 384 tokens | 8 192 tokens | ✅ **16 384 tokens** |
+| Max response length (`max_tokens`) | 16 384 tokens | 8 192 tokens | 16 384 tokens |
 | Models available | OpenAI only | Claude only | ✅ **160+ models, 5 providers** |
 | Function Calling (Tools) | ✅ | ✅ | ✅ |
 | `context_length` reported to agents | ✅ | ✅ | ✅ Automatically |
 | Predictable costs | ❌ | ❌ | ✅ |
 
-> **Why is the context window smaller than official APIs?** The gateway forwards the entire conversation context to the provider in a single HTTP request — the context window equals the maximum size of that request. 32 768 tokens is the production cap validated under load: exceeding it causes providers to return errors consistently. In exchange, the maximum response length (32 768 tokens) is twice that of OpenAI GPT-4o (16 384) and four times that of Anthropic Claude 3.5 (8 192).
+> **Why is the context window smaller than official APIs?** The gateway forwards the entire conversation context to the provider in a single HTTP request — the context window equals the maximum size of that request. 32 768 tokens is the production cap validated under load: exceeding it causes providers to return errors consistently. The maximum response length (16 384 tokens) is twice that of Anthropic Claude 3.5 (8 192) and matches OpenAI GPT-4o (16 384).
 
 **Supported clients:** Python SDK, JavaScript SDK, n8n, OpenWebUI, LangChain, AutoGen, and any OpenAI-compatible client.
 
@@ -923,7 +923,7 @@ curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
 
 > **Context Window (32 768 tokens)** — combined limit for a single API call: all conversation messages (system prompt + history + current request) and the model response must not exceed this value in total. Enforced at the gateway level by the Token Limit Validator before forwarding to the provider.
 >
-> **Max Response (16 384 tokens)** — the `max_tokens` value the gateway declares in `/v1/models` and advertises to AI agents (Kilo Code, Cursor, Claude Code, Continue) for automatic context management. Twice the limit of GPT-4o (16 384) and four times that of Anthropic Claude 3.5 (8 192). Can be overridden in the request body.
+> **Max Response (16 384 tokens)** — the `max_tokens` value the gateway declares in `/v1/models` and advertises to AI agents (Kilo Code, Cursor, Claude Code, Continue) for automatic context management. Twice the limit of Anthropic Claude 3.5 (8 192) and equal to OpenAI GPT-4o (16 384). Can be overridden in the request body.
 
 ---
 
@@ -955,12 +955,12 @@ A: `PER:` models do not process the `system` field as expected. Place all instru
 A: No per-token billing — fixed subscription. No need to monitor a balance. Access to models from multiple providers through a single key. Context window: 32 768 tokens (input + output combined).
 
 **Q: What is the context window and what is its size?**
-A: The context window is the total number of tokens a model processes in a single pass: all conversation messages (system prompt + history + current request) plus the model response. At Ai RAPI this is **65 536 tokens** — uniform across all plans and models.
+A: The context window is the total number of tokens a model processes in a single pass: all conversation messages (system prompt + history + current request) plus the model response. At Ai RAPI this is **32 768 tokens** — uniform across all plans and models.
 
 This value is exposed automatically via `GET /v1/models` in the `context_length` field. AI agents with automatic context management (Kilo Code, Cursor, Claude Code, Continue) read it on connection and use it to determine when to start compressing conversation history.
 
 **Q: What is the maximum response length?**
-A: The gateway declares `max_tokens = 16 384` in the `/v1/models` response — 50% of the context window reserved for generation. For comparison: OpenAI GPT-4o caps responses at 16 384 tokens, Anthropic Claude 3.5 at 8 192 tokens. You can override this by specifying `max_tokens` in the request body.
+A: The gateway declares `max_tokens = 16 384` in the `/v1/models` response — 50% of the context window reserved for generation. For comparison: Anthropic Claude 3.5 caps responses at 8 192 tokens. You can override this by specifying `max_tokens` in the request body.
 
 **Q: How do AI agents (Kilo Code, Cursor, Claude Code, etc.) handle the context window?**
 A: Automatically. On connection, the agent issues `GET /v1/models`, receives `context_length = 32 768` for each model, and configures its internal context compression threshold. No manual configuration is required — the agent trims conversation history automatically as the limit approaches.
