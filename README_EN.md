@@ -8,9 +8,9 @@
 
 ![Ai RAPI](https://img.shields.io/badge/Ai_RAPI-Unlimited_Tokens-orange?style=for-the-badge)
 ![OpenAI Compatible](https://img.shields.io/badge/OpenAI-Compatible-green?style=for-the-badge)
-![Models](https://img.shields.io/badge/160%2B_Models-GPT_•_Claude_•_Gemini_•_Llama_•_Cohere-purple?style=for-the-badge)
+![Models](https://img.shields.io/badge/48_Models-GPT_•_Claude_•_Llama_•_Cohere-purple?style=for-the-badge)
 
-**A single OpenAI-compatible gateway to 160+ top-tier AI models with no per-token billing**
+**A single OpenAI-compatible gateway to 48 top-tier AI models with no per-token billing**
 
 [🤖 Get API Key](https://t.me/ai_rapi_bot) • [📋 Model List](#-model-list) • [⚡ Quick Start](#-quick-start) • [💻 Code Examples](#-code-examples)
 
@@ -48,36 +48,32 @@
 
 ## 🚀 What is Ai RAPI
 
-**Ai RAPI** is an OpenAI-compatible API gateway providing access to **160+ leading AI models** through a single endpoint.
+**Ai RAPI** is an OpenAI-compatible API gateway providing access to 48 leading AI models through a single endpoint.
 
 ### ♾️ Core Advantage — No Per-Token Billing
 
 Unlike direct access to OpenAI, Anthropic or Google where every token is billed individually and costs are unpredictable, **Ai RAPI operates on a fixed subscription with no token-based charges**. Write long prompts, process large documents, run autonomous agents — the cost stays the same.
 
-> **The gateway context window depends on the model type:**
+> **Gateway context window — 65 536 tokens.**
 >
-> - **Models without a prefix** (CAPI: `claude-opus-4-6`, `gpt-4o`, `gemini-3-pro-preview` etc.) — **16 200 tokens**, max response **8 100 tokens**
-> - **Models with a prefix** (`COH:`, `HUG:`, `PER:`, `NVI:`) — **64 800 tokens**, max response **32 400 tokens**
->
-> Ai RAPI proxies requests to providers (Perplexity, Cohere, HuggingFace, Nvidia, CAPI) through a unified gateway. Since the gateway forwards the entire conversation context to the provider in a single request, the gateway context window equals the maximum size of that request. The values above are production caps established through load testing.
+> Ai RAPI proxies requests to providers (Perplexity, Cohere, HuggingFace, Nvidia) through a unified gateway. Since the gateway forwards the entire conversation context to the provider in a single request, the gateway's context window equals the maximum size of that request. The 65 536-token value is a production cap established through load testing: providers begin returning errors under sustained load with context exceeding this threshold.
 >
 > Parameters the gateway exposes automatically via `GET /v1/models`:
-> - `context_length` — full context window size (input + output combined)
-> - `max_tokens` — recommended generation limit (50% of the window)
+> - `context_length` = **65 536** — full context window size (input + output combined)
+> - `max_tokens` = **32 768** — recommended generation limit (50% of the window, leaving room for incoming context)
 >
 > AI coding agents such as Kilo Code, Cursor, Claude Code and Continue read `context_length` on connection and automatically manage context compression — no manual configuration required.
 
 | | OpenAI GPT-4o | Anthropic Claude 3.5 | **Ai RAPI** |
 |--|---|---|---|
 | Billing | Per token (~$2.5–$10 / 1M) | Per token (~$3–$15 / 1M) | ✅ Fixed subscription |
-| Context window | 128 000 tokens | 200 000 tokens | 16 200 — 64 800 tokens |
-| Max response length (`max_tokens`) | 16 384 tokens | 8 192 tokens | 8 100 — 32 400 tokens |
-| Models available | OpenAI only | Claude only | ✅ **160+ models, 5 providers** |
-| Function Calling (Tools) | ✅ | ✅ | ✅ |
+| Context window | 128 000 tokens | 200 000 tokens | 65 536 tokens |
+| Max response length (`max_tokens`) | 16 384 tokens | 8 192 tokens | ✅ **32 768 tokens** |
+| Models available | OpenAI only | Claude only | ✅ 48 models, 4 providers |
 | `context_length` reported to agents | ✅ | ✅ | ✅ Automatically |
 | Predictable costs | ❌ | ❌ | ✅ |
 
-> **Why is the context window smaller than official APIs?** The gateway forwards the entire conversation context to the provider in a single HTTP request — the context window equals the maximum size of that request. The values are production caps validated under load: exceeding them causes providers to return errors consistently.
+> **Why is the context window smaller than official APIs?** The gateway forwards the entire conversation context to the provider in a single HTTP request — the context window equals the maximum size of that request. 65 536 tokens is the production cap validated under load: exceeding it causes providers to return errors consistently. In exchange, the maximum response length (32 768 tokens) is twice that of OpenAI GPT-4o (16 384) and four times that of Anthropic Claude 3.5 (8 192).
 
 **Supported clients:** Python SDK, JavaScript SDK, n8n, OpenWebUI, LangChain, AutoGen, and any OpenAI-compatible client.
 
@@ -89,16 +85,14 @@ All plans include **unlimited token usage**. The only difference between plans i
 
 | Plan | Requests/min | Context Window | Max Response | Duration |
 |------|-------------|----------------|--------------|----------|
-| 🟢 **Start** | 5 RPM | 16 200 / 64 800 tokens ¹ | 8 100 / 32 400 tokens ¹ | 30 days |
-| 🔵 **Business** | 15 RPM | 16 200 / 64 800 tokens ¹ | 8 100 / 32 400 tokens ¹ | 30 days |
-| 🟣 **Pro** | 30 RPM | 16 200 / 64 800 tokens ¹ | 8 100 / 32 400 tokens ¹ | 30 days |
-| ⭐ **Ultra** | 60 RPM | 16 200 / 64 800 tokens ¹ | 8 100 / 32 400 tokens ¹ | 30 days |
+| 🟢 **Start** | 5 RPM | 65 536 tokens | 32 768 tokens | 30 days |
+| 🔵 **Business** | 15 RPM | 65 536 tokens | 32 768 tokens | 30 days |
+| 🟣 **Pro** | 30 RPM | 65 536 tokens | 32 768 tokens | 30 days |
+| ⭐ **Ultra** | 60 RPM | 65 536 tokens | 32 768 tokens | 30 days |
 
-> ¹ **16 200 tokens / 8 100 max response** — for models without a prefix (CAPI: `claude-opus-4-6`, `gpt-4o` etc.). **64 800 tokens / 32 400 max response** — for models with a prefix (`COH:`, `HUG:`, `PER:`, `NVI:`).
->
 > Duration starts from the **first API request**, not from purchase date.
 >
-> **Context window** — combined limit for one API call: all conversation messages and the model response must not exceed this value. **Max response** — the recommended generation limit, advertised to agents via `GET /v1/models`. Can be overridden via the `max_tokens` parameter in the request body.
+> **Context window (65 536 tokens)** — combined limit for one API call: all conversation messages (system prompt + history + current request) and the model response together must not exceed this value. **Max response (32 768 tokens)** — the recommended generation limit, advertised to agents via `GET /v1/models`. Can be overridden via the `max_tokens` parameter in the request body.
 
 👉 [Get a key via Telegram bot @ai_rapi_bot](https://t.me/ai_rapi_bot)
 
@@ -138,38 +132,21 @@ curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
 
 ## 🤖 Model List
 
-The `/models` endpoint is public — **no authorization required**. Current list: **160+ models, 5 providers**.
+The `/models` endpoint is public — **no authorization required**. Current list: **48 models, 4 providers**.
 
 > **All available models are text-based.** Vision and multimodal requests are not supported in the current version.
-> **Function calling (tools)** is supported by **CAPI** and **Nvidia** (`NVI:`) provider models.
+> **Function calling (tools)** is available **only for Nvidia provider models (prefix `NVI:`)**.
 
 ### Current Models
 
-| Provider | Prefix | Example Models | Count | Tools | Context Window |
-|----------|--------|---------------|-------|-------|----------------|
-| **CAPI** 🆕 | _(no prefix)_ | `claude-opus-4-6`, `gpt-4o`, `gpt-4.1`, `gemini-2.5-flash`, `gemini-3-pro-preview`, `deepseek-r1`, `grok-4`, `qwen3-235b`, `llama4:maverick` | 160+ | ✅ | **16 200 tokens** |
-| **Perplexity** | `PER:` | `PER:gpt4o`, `PER:gpt41`, `PER:gpt5`, `PER:claude45sonnet`, `PER:claude40opus`, `PER:o3`, `PER:r1`, `PER:grok4` etc. | 38 | ❌ | **64 800 tokens** |
-| **HuggingSpace** | `HUG:` | `HUG:command-a`, `HUG:command-r`, `HUG:command-r-plus-08-2024` etc. | 5 | ❌ | **64 800 tokens** |
-| **CohereForAI** | `COH:` | `COH:command-a-03-2025`, `COH:command-r-08-2024`, `COH:command-r-plus-08-2024` | 3 | ❌ | **64 800 tokens** |
-| **Nvidia** ⚙ | `NVI:` | `NVI:nvidia/llama-3.3-nemotron-super-49b-v1.5`, `NVI:qwen/qwen3-next-80b-a3b-instruct` | 2 | ✅ | **64 800 tokens** |
+| Provider | Example Models | Count |
+|----------|---------------|-------|
+| **Perplexity** | `PER:gpt4o`, `PER:gpt41`, `PER:gpt5`, `PER:claude45sonnet`, `PER:claude40opus`, `PER:o3`, `PER:r1`, `PER:grok4` etc. | 38 |
+| **HuggingSpace** | `HUG:command-a`, `HUG:command-r`, `HUG:command-r-plus-08-2024` etc. | 5 |
+| **CohereForAI** | `COH:command-a-03-2025`, `COH:command-r-08-2024`, `COH:command-r-plus-08-2024` | 3 |
+| **Nvidia** ⚙ | `NVI:nvidia/llama-3.3-nemotron-super-49b-v1.5`, `NVI:qwen/qwen3-next-80b-a3b-instruct` | 2 |
 
-> CAPI models are used **without a prefix** — just the model name as-is. Nvidia models are marked with `⚙`.
->
-> **Simple rule:** if the model name contains `:` (e.g. `COH:command-a-03-2025`) — it is a prefixed model with a 64 800-token context window. If there is no `:` (e.g. `claude-opus-4-6`) — it is a CAPI model with a 16 200-token context window.
-
-### CAPI Models — Key Families 🆕
-
-| Family | Models |
-|--------|--------|
-| **Anthropic Claude** | `claude-opus-4-6`, `claude-opus-4-5`, `claude-sonnet-4`, `claude-sonnet-4-5`, `claude-haiku-4-5`, `claude-haiku-4-5-20251001` |
-| **OpenAI GPT** | `gpt-4o`, `gpt-4.1`, `gpt-4.1-mini`, `gpt-4.1-nano`, `gpt-4o-mini`, `o1`, `o1-mini`, `o3-mini`, `o4-mini`, `gpt-5`, `gpt-5.1`, `gpt-5.2` |
-| **Google Gemini** | `gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-3-flash-preview`, `gemini-3-pro-preview` |
-| **DeepSeek** | `deepseek-chat`, `deepseek-chat-v3.1`, `deepseek-r1`, `deepseek-r1-250528`, `deepseek-reasoner` |
-| **xAI Grok** | `grok-3-beta`, `grok-3-mini-beta`, `grok-4`, `grok-4-fast` |
-| **Qwen** | `qwen3`, `qwen3-235b`, `qwen3-30b-a3b`, `qwen-max`, `qwen-plus`, `qwen-turbo` |
-| **Meta LLaMA** | `llama-3.3-70b-instruct`, `llama4:maverick`, `llama4:scout` |
-| **Mistral** | `mistral-medium-3`, `mistral-large-3:675b-cloud`, `devstral-2:123b-cloud` |
-| **Perplexity Sonar** | `sonar`, `sonar-pro`, `sonar-deep-research` |
+> Nvidia models are marked with `⚙` — only they support function calling (tools).
 
 ### Linux / macOS
 
@@ -189,7 +166,7 @@ echo -e "\nBY PROVIDER:"
 curl -s "https://n8n.ruscapi.ru/webhook/v1/models" | \
 jq -r '.data | group_by(.owned_by) | map({name: .[0].owned_by, count: length}) | sort_by(-.count) | .[] | "\(.name): \(.count)"'
 
-# Text-only models
+# Text models only
 curl -s "https://n8n.ruscapi.ru/webhook/v1/models?type=text" | jq -r '.data[].id'
 
 # Models with tools (Nvidia only)
@@ -264,7 +241,7 @@ curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
   -H "Authorization: Bearer rapi-YOUR_KEY" \
   -H "Content-Type: application/json" \
   --no-buffer \
-  -d '{"model":"PER:gpt4o","messages":[{"role":"user","content":"Write a poem about autumn."}],"stream":true}'
+  -d '{"model":"PER:gpt4o","messages":[{"role":"user","content":"Write a haiku about autumn."}],"stream":true}'
 ```
 
 ---
@@ -348,7 +325,7 @@ print(response.choices[0].message.content)
 # --- Claude 4.5 Sonnet ---
 response = client.chat.completions.create(
     model="PER:claude45sonnet",
-    messages=[{"role": "user", "content": "Write a short bio about yourself."}]
+    messages=[{"role": "user", "content": "Write a brief introduction about yourself."}]
 )
 print(response.choices[0].message.content)
 
@@ -375,7 +352,7 @@ while True:
     messages.append({"role": "assistant", "content": reply})
     print(f"AI: {reply}\n")
 
-# --- Model list ---
+# --- List models ---
 models = client.models.list()
 for m in sorted(models.data, key=lambda x: x.owned_by):
     print(f"{m.owned_by:30s}  {m.id}")
@@ -403,7 +380,7 @@ const response = await client.chat.completions.create({
   model: "PER:gpt4o",
   messages: [
     { role: "system", content: "You are a helpful assistant." },
-    { role: "user",   content: "How do I write async/await in JavaScript?" },
+    { role: "user",   content: "How does async/await work in JavaScript?" },
   ],
 });
 console.log(response.choices[0].message.content);
@@ -461,6 +438,7 @@ const client = new OpenAI({
 
 async function chat(
   userMessage: string,
+  model: string = "PER:gpt4o",
   history: ChatCompletionMessageParam[] = []
 ): Promise<string> {
   const messages: ChatCompletionMessageParam[] = [
@@ -468,22 +446,24 @@ async function chat(
     ...history,
     { role: "user", content: userMessage },
   ];
-
-  const response = await client.chat.completions.create({
-    model: "PER:gpt4o",
-    messages,
-  });
-
+  const response = await client.chat.completions.create({ model, messages });
   return response.choices[0].message.content ?? "";
 }
 
-const reply = await chat("Explain TypeScript generics.");
-console.log(reply);
+// GPT-4o
+console.log(await chat("What are TypeScript generics?"));
+
+// Claude 4.5 Sonnet
+console.log(await chat("Explain pattern matching", "PER:claude45sonnet"));
 ```
 
 ---
 
 ### Go
+
+```bash
+go get github.com/sashabaranov/go-openai
+```
 
 ```go
 package main
@@ -491,7 +471,8 @@ package main
 import (
     "context"
     "fmt"
-    "github.com/sashabaranov/go-openai"
+    "os"
+    openai "github.com/sashabaranov/go-openai"
 )
 
 func main() {
@@ -504,12 +485,14 @@ func main() {
         openai.ChatCompletionRequest{
             Model: "PER:gpt4o",
             Messages: []openai.ChatCompletionMessage{
-                {Role: openai.ChatMessageRoleUser, Content: "Hello from Go!"},
+                {Role: openai.ChatMessageRoleSystem, Content: "You are a helpful assistant."},
+                {Role: openai.ChatMessageRoleUser,   Content: "Tell me about the Go language."},
             },
         },
     )
     if err != nil {
-        panic(err)
+        fmt.Printf("Error: %v\n", err)
+        os.Exit(1)
     }
     fmt.Println(resp.Choices[0].Message.Content)
 }
@@ -519,14 +502,17 @@ func main() {
 
 ### PHP
 
+```bash
+composer require guzzlehttp/guzzle
+```
+
 ```php
 <?php
-require 'vendor/autoload.php';
-
+require_once 'vendor/autoload.php';
 use GuzzleHttp\Client;
 
-$client = new Client();
-$response = $client->post('https://n8n.ruscapi.ru/webhook/v1/chat/completions', [
+$http = new Client();
+$response = $http->post("https://n8n.ruscapi.ru/webhook/v1/chat/completions", [
     'headers' => [
         'Authorization' => 'Bearer rapi-YOUR_KEY',
         'Content-Type'  => 'application/json',
@@ -534,7 +520,8 @@ $response = $client->post('https://n8n.ruscapi.ru/webhook/v1/chat/completions', 
     'json' => [
         'model'    => 'PER:gpt4o',
         'messages' => [
-            ['role' => 'user', 'content' => 'Hello from PHP!'],
+            ['role' => 'system', 'content' => 'You are a helpful assistant.'],
+            ['role' => 'user',   'content' => 'How does PHP work?'],
         ],
     ],
 ]);
@@ -547,7 +534,7 @@ echo $body['choices'][0]['message']['content'] . PHP_EOL;
 
 ## 🔧 Using with n8n
 
-### Via Lemonade Chat Model (recommended)
+### Via Lemonade Chat Model (Recommended)
 
 Lemonade is a native n8n package for working with OpenAI-compatible servers.
 
@@ -571,7 +558,7 @@ Lemonade is a native n8n package for working with OpenAI-compatible servers.
    - **Credential:** `Ai-Rapi`
    - **Model:** `PER:gpt4o` or `PER:claude45sonnet`
 
-> ⚠️ **Tools in n8n:** if you need an AI Agent with tools (Code Tool, Calculator etc.), use **CAPI** models (no prefix) or **Nvidia** (`NVI:`). Other providers do not support tools.
+> ⚠️ **Tools in n8n:** if you need an AI Agent with tools (Code Tool, Calculator, etc.), use exclusively **Nvidia** models (`NVI:`). All other providers do not support tools.
 
 #### Example AI Agent Workflow
 
@@ -580,8 +567,8 @@ Telegram Trigger
   ↓
 AI Agent
   ├── Chat Model → Lemonade Chat Model
-  │   ├── Regular chat:  claude-opus-4-6 / gpt-4o / PER:claude45sonnet
-  │   └── With tools:    claude-opus-4-6 / NVI:nvidia/llama-3.3-nemotron-super-49b-v1.5
+  │   ├── Regular chat:  PER:gpt4o / PER:claude45sonnet
+  │   └── With tools:    NVI:nvidia/llama-3.3-nemotron-super-49b-v1.5
   ├── Memory    → Window Buffer Memory
   └── Tools     → Calculator, Wikipedia, Code Tool
   ↓
@@ -592,7 +579,7 @@ Send Telegram Message
 
 ### Via OpenAI Chat Model
 
-1. Add the **OpenAI Chat Model** node
+1. Add an **OpenAI Chat Model** node
 2. Credential → **OpenAI API**:
    - **API Key:** `rapi-YOUR_KEY`
    - **Base URL:** `https://n8n.ruscapi.ru/webhook/v1`
@@ -600,7 +587,7 @@ Send Telegram Message
 
 ---
 
-### Via HTTP Request Node (universal)
+### Via HTTP Request Node (Universal)
 
 | Field | Value |
 |-------|-------|
@@ -618,7 +605,7 @@ Send Telegram Message
 }
 ```
 
-**Get the response:**
+**Get response:**
 ```
 ={{ $json.choices[0].message.content }}
 ```
@@ -637,29 +624,27 @@ Send Telegram Message
 
 ## ✍️ Prompt Engineering for Ai RAPI
 
-Ai RAPI is an aggregator that routes requests to models hosted by different **providers** (Perplexity, Cohere, HuggingSpace, Nvidia). Providers are not the model makers — they are companies that host models with their own settings, system prompts and fine-tuning. As a result, the behaviour of the same model via Ai RAPI may differ from that of the official API.
-
-To get consistently high-quality responses, two key principles matter.
+Ai RAPI is an aggregator that routes requests to models hosted by different **providers** (Perplexity, Cohere, HuggingSpace, Nvidia). Providers are not model manufacturers — they are companies that host models with their own configurations, system prompts and fine-tuning. As a result, the same model may behave differently through Ai RAPI versus its official API.
 
 ---
 
-### ⚠️ Perplexity model quirk: do not use `system`
+### ⚠️ Perplexity Models: Avoid Using `system`
 
-Models from **Perplexity** (`PER:`) ignore or poorly handle the `system` field. **All content — role, task, instructions — must be placed in the `user` field.**
+Models from provider **Perplexity** (`PER:`) ignore or poorly handle the `system` field. **All content — role definition, task, instructions — must be placed in the `user` field.**
 
-**Cohere** (`COH:`) and **Nvidia** (`NVI:`) models handle the standard `system` / `user` split correctly.
+**Cohere** (`COH:`) and **Nvidia** (`NVI:`) models work correctly with standard `system` / `user` separation.
 
 ---
 
-### 🔑 Universal approach: everything in `user`, `system` empty or absent
+### 🔑 Universal Approach: Everything in `user`, No `system`
 
-Since the API normalises requests to the OpenAI-compatible format, and different model families handle `system` differently (OpenAI — highest priority, Claude — lowest), **the most reliable universal approach** is to merge the system prompt and user data into a single `user` field.
+Since the API normalises requests to OpenAI-compatible format and different model families handle `system` differently, the **most reliable universal approach** is to merge the system prompt and user data into a single `user` message.
 
-**The "matryoshka" principle:** system instructions wrap the input data inside a single `user` message:
+**The "nesting" principle — system instructions wrap the input data:**
 
 ```
 [SYSTEM INSTRUCTIONS]
-   [USER INPUT DATA]
+   [INPUT DATA FROM USER]
 [CONTINUATION / FINAL DIRECTIVE]
 ```
 
@@ -679,7 +664,7 @@ Since the API normalises requests to the OpenAI-compatible format, and different
   "messages": [
     {
       "role": "user",
-      "content": "You are an analyst. Be concise.\n\nInput data for analysis:\n...data...\n\nOutput only the result."
+      "content": "You are an analyst. Be concise.\n\nInput data:\n...data...\n\nOutput only the result."
     }
   ]
 }
@@ -775,21 +760,20 @@ FINAL OUTPUT
 Return ONLY the final result in the exact format defined in CRITICAL OUTPUT FORMAT.
 ```
 
-> **This template outperforms the standard `system`/`user` split even when connecting directly to official model provider APIs.**
+> **This template outperforms standard `system`/`user` separation even when connecting directly to official model provider APIs.**
 
 ---
 
 ### 🗂️ Provider Quick Reference
 
-| Provider | Prefix | `system` field | Recommended approach | Context Window |
-|----------|--------|---------------|---------------------|----------------|
-| CAPI | _(no prefix)_ | ✅ Works | `system` + `user` or all in `user` | 16 200 tokens |
-| Perplexity | `PER:` | ⚠️ Broken | All in `user` | 64 800 tokens |
-| CohereForAI | `COH:` | ✅ Works | `system` + `user` or all in `user` | 64 800 tokens |
-| HuggingSpace | `HUG:` | ⚠️ Unstable | All in `user` | 64 800 tokens |
-| Nvidia | `NVI:` | ✅ Works | `system` + `user` or all in `user` | 64 800 tokens |
+| Provider | Prefix | `system` field | Recommended approach |
+|----------|--------|---------------|---------------------|
+| Perplexity | `PER:` | ⚠️ Doesn't work | Everything in `user` |
+| CohereForAI | `COH:` | ✅ Works | `system` + `user` or everything in `user` |
+| HuggingSpace | `HUG:` | ⚠️ Unstable | Everything in `user` |
+| Nvidia | `NVI:` | ✅ Works | `system` + `user` or everything in `user` |
 
-**Universal advice:** use the "all in `user`" approach — it works reliably with every provider without exception.
+**Universal advice:** use the "everything in `user`" approach — it works consistently across all providers without exception.
 
 ---
 
@@ -803,7 +787,7 @@ data: {"choices":[{"delta":{"content":"!"},"index":0}]}
 data: [DONE]
 ```
 
-**Python — manual handling:**
+**Python — manual streaming:**
 ```python
 import httpx, json
 
@@ -832,15 +816,10 @@ with httpx.stream(
 
 ## ⚙️ Function Calling (Tools)
 
-> **Important:** function calling is supported by **CAPI** provider models (no prefix) and **Nvidia** provider models (prefix `NVI:`).
+> **Important:** function calling is supported **only by Nvidia provider models** (prefix `NVI:`).
 > Perplexity, Cohere and HuggingSpace do **not** support tools.
 
-**Models with tools:**
-
-*CAPI (recommended — wide selection):*
-- `claude-opus-4-6`, `claude-sonnet-4-5`, `gpt-4o`, `gpt-4.1`, `gemini-3-pro-preview` and all other models without a prefix
-
-*Nvidia:*
+**Available models with tools:**
 - `NVI:nvidia/llama-3.3-nemotron-super-49b-v1.5`
 - `NVI:qwen/qwen3-next-80b-a3b-instruct`
 
@@ -869,7 +848,7 @@ tools = [{
 }]
 
 response = client.chat.completions.create(
-    model="claude-opus-4-6",  # CAPI or NVI — both support tools
+    model="NVI:nvidia/llama-3.3-nemotron-super-49b-v1.5",  # NVI only!
     messages=[{"role": "user", "content": "What's the weather in London?"}],
     tools=tools,
     tool_choice="auto"
@@ -890,7 +869,7 @@ curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
   -H "Authorization: Bearer rapi-YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "claude-opus-4-6",
+    "model": "NVI:nvidia/llama-3.3-nemotron-super-49b-v1.5",
     "messages": [{"role": "user", "content": "What is the weather in London?"}],
     "tools": [{
       "type": "function",
@@ -914,17 +893,15 @@ curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
 
 | Plan | Req/min | Context Window | Max Response | Token Billing | Duration |
 |------|---------|----------------|--------------|---------------|----------|
-| 🟢 Start | 5 | 16 200 / 64 800 tokens ¹ | 8 100 / 32 400 tokens ¹ | ♾️ Unlimited | 30 days |
-| 🔵 Business | 15 | 16 200 / 64 800 tokens ¹ | 8 100 / 32 400 tokens ¹ | ♾️ Unlimited | 30 days |
-| 🟣 Pro | 30 | 16 200 / 64 800 tokens ¹ | 8 100 / 32 400 tokens ¹ | ♾️ Unlimited | 30 days |
-| ⭐ Ultra | 60 | 16 200 / 64 800 tokens ¹ | 8 100 / 32 400 tokens ¹ | ♾️ Unlimited | 30 days |
-| 🧪 Trial | 5 | 16 200 / 64 800 tokens ¹ | 8 100 / 32 400 tokens ¹ | ♾️ Unlimited | 24 hours |
+| 🟢 Start | 5 | 65 536 tokens | 32 768 tokens | ♾️ Unlimited | 30 days |
+| 🔵 Business | 15 | 65 536 tokens | 32 768 tokens | ♾️ Unlimited | 30 days |
+| 🟣 Pro | 30 | 65 536 tokens | 32 768 tokens | ♾️ Unlimited | 30 days |
+| ⭐ Ultra | 60 | 65 536 tokens | 32 768 tokens | ♾️ Unlimited | 30 days |
+| 🧪 Trial | 5 | 65 536 tokens | 32 768 tokens | ♾️ Unlimited | 24 hours |
 
-> ¹ **16 200 tokens / 8 100 max response** — for models without a prefix (CAPI). **64 800 tokens / 32 400 max response** — for models with a prefix (`COH:`, `HUG:`, `PER:`, `NVI:`).
+> **Context Window (65 536 tokens)** — combined limit for a single API call: all conversation messages (system prompt + history + current request) and the model response must not exceed this value in total. Enforced at the gateway level by the Token Limit Validator before forwarding to the provider.
 >
-> **Context Window** — combined limit for a single API call: all conversation messages (system prompt + history + current request) and the model response must not exceed this value in total. Enforced at the gateway level by the Token Limit Validator before forwarding to the provider.
->
-> **Max Response** — the `max_tokens` value the gateway declares in `/v1/models` and advertises to AI agents (Kilo Code, Cursor, Claude Code, Continue) for automatic context management. Can be overridden in the request body.
+> **Max Response (32 768 tokens)** — the `max_tokens` value the gateway declares in `/v1/models` and advertises to AI agents (Kilo Code, Cursor, Claude Code, Continue) for automatic context management. Twice the limit of GPT-4o (16 384) and four times that of Anthropic Claude 3.5 (8 192). Can be overridden in the request body.
 
 ---
 
@@ -953,25 +930,18 @@ A: OpenRouter connects directly to official model provider APIs. Ai RAPI routes 
 A: `PER:` models do not process the `system` field as expected. Place all instructions (role, task, output format) inside the `user` field.
 
 **Q: What is the difference from direct OpenAI or Anthropic access?**
-A: No per-token billing — fixed subscription. No need to monitor a balance. Access to models from multiple providers through a single key.
+A: No per-token billing — fixed subscription. No need to monitor a balance. Access to models from multiple providers through a single key. Context window: 65 536 tokens (input + output combined).
 
 **Q: What is the context window and what is its size?**
-A: The context window is the total number of tokens a model processes in a single pass: all conversation messages plus the model response. At Ai RAPI the size depends on the model type:
+A: The context window is the total number of tokens a model processes in a single pass: all conversation messages (system prompt + history + current request) plus the model response. At Ai RAPI this is **65 536 tokens** — uniform across all plans and models.
 
-- **Models without a prefix** (CAPI: `claude-opus-4-6`, `gpt-4o` etc.) — **16 200 tokens**
-- **Models with a prefix** (`COH:`, `HUG:`, `PER:`, `NVI:`) — **64 800 tokens**
-
-This value is exposed automatically via `GET /v1/models` in the `context_length` field. AI agents (Kilo Code, Cursor, Claude Code, Continue) read it on connection and use it to determine when to start compressing conversation history.
+This value is exposed automatically via `GET /v1/models` in the `context_length` field. AI agents with automatic context management (Kilo Code, Cursor, Claude Code, Continue) read it on connection and use it to determine when to start compressing conversation history.
 
 **Q: What is the maximum response length?**
-A: Depends on the model type:
-- **Without prefix** (CAPI) — **8 100 tokens**
-- **With prefix** (`COH:`, `HUG:`, `PER:`, `NVI:`) — **32 400 tokens**
-
-The gateway declares these values in the `/v1/models` response. You can override the value by specifying `max_tokens` in the request body.
+A: The gateway declares `max_tokens = 32 768` in the `/v1/models` response — 50% of the context window reserved for generation. For comparison: OpenAI GPT-4o caps responses at 16 384 tokens, Anthropic Claude 3.5 at 8 192 tokens. You can override this by specifying `max_tokens` in the request body.
 
 **Q: How do AI agents (Kilo Code, Cursor, Claude Code, etc.) handle the context window?**
-A: Automatically. On connection, the agent issues `GET /v1/models`, receives `context_length` for each model, and configures its internal context compression threshold. No manual configuration required — the agent trims conversation history automatically as the limit approaches.
+A: Automatically. On connection, the agent issues `GET /v1/models`, receives `context_length = 65536` for each model, and configures its internal context compression threshold. No manual configuration is required — the agent trims conversation history automatically as the limit approaches.
 
 **Q: When does the key duration start?**
 A: From the **first API request**, not from the purchase date.
@@ -980,7 +950,7 @@ A: From the **first API request**, not from the purchase date.
 A: No. It is a public endpoint — no key required.
 
 **Q: Is function calling (tools) supported?**
-A: Yes — for **CAPI** models (no prefix: `claude-opus-4-6`, `gpt-4o` etc.) and **Nvidia** models (`NVI:`). Perplexity, Cohere and HuggingSpace do not support tools.
+A: Only for **Nvidia** models (`NVI:`). Perplexity, Cohere and HuggingSpace do not support tools.
 
 **Q: Are vision / image inputs supported?**
 A: Not in the current version. Only text models are available.
