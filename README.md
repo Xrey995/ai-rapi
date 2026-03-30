@@ -54,26 +54,24 @@
 
 В отличие от прямого доступа к OpenAI, Anthropic или Google, где каждый токен тарифицируется отдельно и счета непредсказуемы, **Ai RAPI работает по фиксированной подписке без тарификации по токенам**. Пишите длинные промпты, обрабатывайте большие документы, запускайте агентов — стоимость не изменится.
 
-> **Контекстное окно шлюза — 65 536 токенов.**
+> **Контекстное окно шлюза — 128 000 токенов.**
 >
-> Ai RAPI проксирует запросы к провайдерам (Perplexity, Cohere, HuggingFace, Nvidia) через единый gateway. Поскольку шлюз передаёт весь контекст диалога провайдеру в одном запросе, размер контекстного окна шлюза равен максимальному размеру этого запроса. Значение 65 536 токенов — производственный cap, установленный по результатам нагрузочного тестирования: провайдеры начинают возвращать ошибки при стабильной нагрузке с контекстом выше этого порога.
+> Ai RAPI проксирует запросы к провайдерам (Perplexity, Cohere, HuggingFace, Nvidia) через единый gateway. Шлюз передаёт весь контекст диалога провайдеру в одном запросе.
 >
 > Параметры, которые шлюз передаёт AI-агентам автоматически через `GET /v1/models`:
-> - `context_length` = **65 536** — полный размер контекстного окна (вход + выход)
-> - `max_tokens` = **32 768** — рекомендуемый лимит на генерацию ответа (50% окна, чтобы оставить место под входящий контекст)
+> - `context_length` = **128 000** — полный размер контекстного окна (вход + выход)
+> - `max_tokens` = **65 536** — рекомендуемый лимит на генерацию ответа (50% окна, чтобы оставить место под входящий контекст)
 >
 > Такие инструменты как Kilo Code, Cursor, Claude Code и Continue читают `context_length` при подключении и автоматически управляют сжатием контекста без дополнительной настройки с вашей стороны.
 
 | | OpenAI GPT-4o | Anthropic Claude 3.5 | **Ai RAPI** |
 |--|---|---|---|
 | Тарификация | За токены (~$2.5–$10 / 1M) | За токены (~$3–$15 / 1M) | ✅ Фиксированная подписка, потребление токенов не лимитируется |
-| Контекстное окно | 128 000 токенов | 200 000 токенов | 65 536 токенов |
-| Макс. длина ответа (`max_tokens`) | 16 384 токена | 8 192 токена | ✅ **32 768 токенов** |
+| Контекстное окно | 128 000 токенов | 200 000 токенов | ✅ **128 000 токенов** |
+| Макс. длина ответа (`max_tokens`) | 16 384 токена | 8 192 токена | ✅ **65 536 токенов** |
 | Количество моделей | Только OpenAI | Только Claude | ✅ 48 моделей, 4 провайдера |
 | Передача `context_length` агентам | ✅ | ✅ | ✅ Автоматически |
 | Предсказуемость затрат | ❌ | ❌ | ✅ |
-
-> **Почему контекстное окно 65 536, а не больше?** Шлюз передаёт весь контекст диалога провайдеру в одном HTTP-запросе. Контекстное окно шлюза = максимальный размер этого запроса. 65 536 токенов — production cap, установленный по результатам нагрузочного тестирования: при превышении этого значения провайдеры начинают стабильно возвращать ошибки. Зато максимальная длина ответа модели (32 768 токенов) вдвое превышает лимит OpenAI GPT-4o (16 384) и вчетверо — Anthropic Claude 3.5 (8 192).
 
 **Подходит для:** Python SDK, JavaScript SDK, n8n, OpenWebUI, LangChain, AutoGen и любых клиентов с OpenAI-совместимым интерфейсом.
 
@@ -85,14 +83,14 @@
 
 | Тариф | Запросов/мин | Контекстное окно | Макс. ответ | Срок |
 |-------|-------------|-----------------|-------------|------|
-| 🟢 **Start** | 5 RPM | 65 536 токенов | 32 768 токенов | 30 дней |
-| 🔵 **Business** | 15 RPM | 65 536 токенов | 32 768 токенов | 30 дней |
-| 🟣 **Pro** | 30 RPM | 65 536 токенов | 32 768 токенов | 30 дней |
-| ⭐ **Ultra** | 60 RPM | 65 536 токенов | 32 768 токенов | 30 дней |
+| 🟢 **Start** | 5 RPM | 128 000 токенов | 65 536 токенов | 30 дней |
+| 🔵 **Business** | 15 RPM | 128 000 токенов | 65 536 токенов | 30 дней |
+| 🟣 **Pro** | 30 RPM | 128 000 токенов | 65 536 токенов | 30 дней |
+| ⭐ **Ultra** | 60 RPM | 128 000 токенов | 65 536 токенов | 30 дней |
 
 > Срок отсчитывается с **первого запроса** к API, не с момента покупки.
 >
-> **Контекстное окно (65 536 токенов)** — суммарный объём одного обращения: входящие сообщения + ответ модели. **Макс. ответ (32 768 токенов)** — рекомендуемый лимит генерации, передаётся агентам через `GET /v1/models`. При необходимости `max_tokens` можно задать вручную в теле запроса.
+> **Контекстное окно (128 000 токенов)** — суммарный объём одного обращения: входящие сообщения + ответ модели. **Макс. ответ (65 536 токенов)** — рекомендуемый лимит генерации, передаётся агентам через `GET /v1/models`. При необходимости `max_tokens` можно задать вручную в теле запроса.
 
 👉 [Купить ключ в Telegram-боте @ai_rapi_bot](https://t.me/ai_rapi_bot)
 
@@ -110,7 +108,7 @@ rapi-start1a2b3c4d5e6f7890...
 ### Шаг 2 — Сделайте первый запрос
 
 ```bash
-curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
+curl https://api.ruscapi.ru/v1/chat/completions \
   -H "Authorization: Bearer rapi-ВАШ_КЛЮЧ" \
   -H "Content-Type: application/json" \
   -d '{
@@ -123,7 +121,7 @@ curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
 
 | Параметр | Значение |
 |----------|---------|
-| **Base URL** | `https://n8n.ruscapi.ru/webhook/v1` |
+| **Base URL** | `https://api.ruscapi.ru/v1` |
 | **Chat completions** | `POST /chat/completions` |
 | **Список моделей** | `GET /models` (без авторизации) |
 | **Авторизация** | `Authorization: Bearer rapi-ВАШ_КЛЮЧ` |
@@ -153,53 +151,69 @@ Endpoint `/models` публичный — авторизация **не треб
 ```bash
 # Полный список с провайдерами
 echo "СПИСОК МОДЕЛЕЙ:" && \
-curl -s "https://n8n.ruscapi.ru/webhook/v1/models" | \
+curl -s "https://api.ruscapi.ru/v1/models" | \
 jq -r '.data[] | "\(.display_name)\t\(.owned_by)"' | \
 awk -F'\t' '{printf "%-60s %s\n", $1, $2}'
 
 # Статистика
 echo -e "\nВСЕГО МОДЕЛЕЙ:"
-curl -s "https://n8n.ruscapi.ru/webhook/v1/models" | \
+curl -s "https://api.ruscapi.ru/v1/models" | \
 jq -r '"Всего: \(.data | length)"'
 
 echo -e "\nПО ПРОВАЙДЕРАМ:"
-curl -s "https://n8n.ruscapi.ru/webhook/v1/models" | \
+curl -s "https://api.ruscapi.ru/v1/models" | \
 jq -r '.data | group_by(.owned_by) | map({name: .[0].owned_by, count: length}) | sort_by(-.count) | .[] | "\(.name): \(.count)"'
 
 # Только текстовые модели
-curl -s "https://n8n.ruscapi.ru/webhook/v1/models?type=text" | jq -r '.data[].id'
+curl -s "https://api.ruscapi.ru/v1/models?type=text" | jq -r '.data[].id'
 
 # Модели с tools (только Nvidia)
-curl -s "https://n8n.ruscapi.ru/webhook/v1/models?provider=NVI" | jq -r '.data[].id'
+curl -s "https://api.ruscapi.ru/v1/models?provider=NVI" | jq -r '.data[].id'
 
 # По провайдерам
-curl -s "https://n8n.ruscapi.ru/webhook/v1/models?provider=PER" | jq -r '.data[].id'  # Perplexity
-curl -s "https://n8n.ruscapi.ru/webhook/v1/models?provider=COH" | jq -r '.data[].id'  # CohereForAI
-curl -s "https://n8n.ruscapi.ru/webhook/v1/models?provider=HUG" | jq -r '.data[].id'  # HuggingSpace
+curl -s "https://api.ruscapi.ru/v1/models?provider=PER" | jq -r '.data[].id'  # Perplexity
+curl -s "https://api.ruscapi.ru/v1/models?provider=COH" | jq -r '.data[].id'  # CohereForAI
+curl -s "https://api.ruscapi.ru/v1/models?provider=HUG" | jq -r '.data[].id'  # HuggingSpace
 ```
 
 ### PowerShell (Windows)
 
 ```powershell
-# Полный список моделей
-$response = Invoke-RestMethod -Uri "https://n8n.ruscapi.ru/webhook/v1/models"
-$models = $response.data
+# ── Полный список моделей ──────────────────────────────────────────────────
+$r = Invoke-RestMethod -Uri "https://api.ruscapi.ru/v1/models"
+Write-Host "`nСПИСОК МОДЕЛЕЙ ($($r.data.Count) шт.):" -ForegroundColor Cyan
+$r.data | Sort-Object owned_by | Format-Table -Property @{L='Модель';E={$_.id}}, @{L='Провайдер';E={$_.owned_by}} -AutoSize
 
-$output = @()
-$output += "СПИСОК МОДЕЛЕЙ:"
-$output += $models | Format-Table -Property display_name, owned_by -AutoSize | Out-String
-$output += "`nСТАТИСТИКА:"
-$output += "Всего моделей: $($models.Count)"
+# ── Статистика по провайдерам ──────────────────────────────────────────────
+Write-Host "`nПО ПРОВАЙДЕРАМ:" -ForegroundColor Yellow
+$r.data | Group-Object owned_by | Sort-Object Count -Descending |
+    ForEach-Object { Write-Host "  $($_.Name): $($_.Count) моделей" }
 
-$providers = $models | Group-Object -Property owned_by | Sort-Object -Property Count -Descending
-$output += "`nПО ПРОВАЙДЕРАМ:"
-$providers | ForEach-Object { $output += "$($_.Name): $($_.Count)" }
-$output | Out-String
+# ── Только Perplexity ──────────────────────────────────────────────────────
+Write-Host "`nMODELS — Perplexity (PER):" -ForegroundColor Green
+(Invoke-RestMethod "https://api.ruscapi.ru/v1/models?provider=PER").data |
+    Select-Object -ExpandProperty id
 
-# Модели с поддержкой tools (только Nvidia)
-$toolsModels = Invoke-RestMethod -Uri "https://n8n.ruscapi.ru/webhook/v1/models?provider=NVI"
-Write-Output "`nМодели с tools:"
-$toolsModels.data | Select-Object id, owned_by | Format-Table -AutoSize
+# ── Только Nvidia (с поддержкой tools) ────────────────────────────────────
+Write-Host "`nMODELS — Nvidia / tools (NVI):" -ForegroundColor Magenta
+(Invoke-RestMethod "https://api.ruscapi.ru/v1/models?provider=NVI").data |
+    Select-Object -ExpandProperty id
+
+# ── Только CohereForAI ────────────────────────────────────────────────────
+Write-Host "`nMODELS — CohereForAI (COH):" -ForegroundColor Blue
+(Invoke-RestMethod "https://api.ruscapi.ru/v1/models?provider=COH").data |
+    Select-Object -ExpandProperty id
+
+# ── Только HuggingSpace ───────────────────────────────────────────────────
+Write-Host "`nMODELS — HuggingSpace (HUG):" -ForegroundColor DarkYellow
+(Invoke-RestMethod "https://api.ruscapi.ru/v1/models?provider=HUG").data |
+    Select-Object -ExpandProperty id
+
+# ── Контекстное окно и max_tokens для каждой модели ───────────────────────
+Write-Host "`nКОНТЕКСТНОЕ ОКНО:" -ForegroundColor Cyan
+$r.data | Format-Table -Property @{L='Модель';E={$_.id}},
+    @{L='context_length';E={$_.context_length}},
+    @{L='max_tokens';E={$_.max_tokens}} -AutoSize
 ```
 
 ---
@@ -213,7 +227,7 @@ $toolsModels.data | Select-Object id, owned_by | Format-Table -AutoSize
 
 ```bash
 # GPT-4o через Perplexity
-curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
+curl https://api.ruscapi.ru/v1/chat/completions \
   -H "Authorization: Bearer rapi-ВАШ_КЛЮЧ" \
   -H "Content-Type: application/json" \
   -d '{
@@ -225,19 +239,19 @@ curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
   }'
 
 # Claude 4.5 Sonnet через Perplexity
-curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
+curl https://api.ruscapi.ru/v1/chat/completions \
   -H "Authorization: Bearer rapi-ВАШ_КЛЮЧ" \
   -H "Content-Type: application/json" \
   -d '{"model":"PER:claude45sonnet","messages":[{"role":"user","content":"Привет от Claude!"}]}'
 
 # Command R+ через Cohere
-curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
+curl https://api.ruscapi.ru/v1/chat/completions \
   -H "Authorization: Bearer rapi-ВАШ_КЛЮЧ" \
   -H "Content-Type: application/json" \
   -d '{"model":"COH:command-r-plus-08-2024","messages":[{"role":"user","content":"Расскажи про себя."}]}'
 
 # Стриминг
-curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
+curl https://api.ruscapi.ru/v1/chat/completions \
   -H "Authorization: Bearer rapi-ВАШ_КЛЮЧ" \
   -H "Content-Type: application/json" \
   --no-buffer \
@@ -249,7 +263,7 @@ curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
 ### PowerShell (Windows)
 
 ```powershell
-# Простой запрос
+# ── Простой запрос ─────────────────────────────────────────────────────────
 $headers = @{
     "Authorization" = "Bearer rapi-ВАШ_КЛЮЧ"
     "Content-Type"  = "application/json"
@@ -265,7 +279,7 @@ $body = @{
 
 $response = Invoke-RestMethod `
     -Method POST `
-    -Uri "https://n8n.ruscapi.ru/webhook/v1/chat/completions" `
+    -Uri "https://api.ruscapi.ru/v1/chat/completions" `
     -Headers $headers `
     -Body $body
 
@@ -273,7 +287,7 @@ Write-Output $response.choices[0].message.content
 ```
 
 ```powershell
-# Мультиходовой диалог
+# ── Мультиходовой диалог ───────────────────────────────────────────────────
 $headers = @{
     "Authorization" = "Bearer rapi-ВАШ_КЛЮЧ"
     "Content-Type"  = "application/json"
@@ -287,12 +301,85 @@ while ($true) {
     $messages += @{ role = "user"; content = $userInput }
     $body = @{ model = "PER:claude45sonnet"; messages = $messages } | ConvertTo-Json -Depth 10
     $response = Invoke-RestMethod -Method POST `
-        -Uri "https://n8n.ruscapi.ru/webhook/v1/chat/completions" `
+        -Uri "https://api.ruscapi.ru/v1/chat/completions" `
         -Headers $headers -Body $body
 
     $reply = $response.choices[0].message.content
     $messages += @{ role = "assistant"; content = $reply }
     Write-Output "AI: $reply`n"
+}
+```
+
+```powershell
+# ── Стриминг (SSE) — вывод токен за токеном ───────────────────────────────
+$headers = @{
+    "Authorization" = "Bearer rapi-ВАШ_КЛЮЧ"
+    "Content-Type"  = "application/json"
+}
+$body = @{
+    model    = "PER:gpt4o"
+    messages = @(@{ role = "user"; content = "Напиши стихотворение про осень." })
+    stream   = $true
+} | ConvertTo-Json -Depth 10
+
+$request = [System.Net.WebRequest]::Create("https://api.ruscapi.ru/v1/chat/completions")
+$request.Method = "POST"
+$request.ContentType = "application/json"
+$request.Headers.Add("Authorization", "Bearer rapi-ВАШ_КЛЮЧ")
+$bytes = [System.Text.Encoding]::UTF8.GetBytes($body)
+$request.ContentLength = $bytes.Length
+$stream = $request.GetRequestStream()
+$stream.Write($bytes, 0, $bytes.Length)
+$stream.Close()
+
+$response = $request.GetResponse()
+$reader = New-Object System.IO.StreamReader($response.GetResponseStream())
+while (-not $reader.EndOfStream) {
+    $line = $reader.ReadLine()
+    if ($line -match '^data: (.+)$' -and $Matches[1] -ne '[DONE]') {
+        $chunk = $Matches[1] | ConvertFrom-Json
+        $content = $chunk.choices[0].delta.content
+        if ($content) { Write-Host $content -NoNewline }
+    }
+}
+Write-Host ""
+$reader.Close()
+```
+
+```powershell
+# ── Function calling (только NVI: модели) ─────────────────────────────────
+$headers = @{
+    "Authorization" = "Bearer rapi-ВАШ_КЛЮЧ"
+    "Content-Type"  = "application/json"
+}
+$body = @{
+    model    = "NVI:nvidia/llama-3.3-nemotron-super-49b-v1.5"
+    messages = @(@{ role = "user"; content = "Какая погода в Москве?" })
+    tools    = @(@{
+        type     = "function"
+        function = @{
+            name        = "get_weather"
+            description = "Получить текущую погоду в городе"
+            parameters  = @{
+                type       = "object"
+                properties = @{ city = @{ type = "string"; description = "Название города" } }
+                required   = @("city")
+            }
+        }
+    })
+    tool_choice = "auto"
+} | ConvertTo-Json -Depth 10
+
+$response = Invoke-RestMethod -Method POST `
+    -Uri "https://api.ruscapi.ru/v1/chat/completions" `
+    -Headers $headers -Body $body
+
+$toolCall = $response.choices[0].message.tool_calls[0]
+if ($toolCall) {
+    Write-Host "Функция: $($toolCall.function.name)"
+    Write-Host "Аргументы: $($toolCall.function.arguments)"
+} else {
+    Write-Host $response.choices[0].message.content
 }
 ```
 
@@ -309,7 +396,7 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key="rapi-ВАШ_КЛЮЧ",
-    base_url="https://n8n.ruscapi.ru/webhook/v1"
+    base_url="https://api.ruscapi.ru/v1"
 )
 
 # --- GPT-4o через Perplexity ---
@@ -372,7 +459,7 @@ import OpenAI from "openai";
 
 const client = new OpenAI({
   apiKey: "rapi-ВАШ_КЛЮЧ",
-  baseURL: "https://n8n.ruscapi.ru/webhook/v1",
+  baseURL: "https://api.ruscapi.ru/v1",
 });
 
 // GPT-4o через Perplexity
@@ -410,7 +497,7 @@ console.log();
 const OpenAI = require("openai");
 const client = new OpenAI({
   apiKey: "rapi-ВАШ_КЛЮЧ",
-  baseURL: "https://n8n.ruscapi.ru/webhook/v1",
+  baseURL: "https://api.ruscapi.ru/v1",
 });
 
 async function main() {
@@ -433,7 +520,7 @@ import type { ChatCompletionMessageParam } from "openai/resources/chat";
 
 const client = new OpenAI({
   apiKey: process.env.RAPI_API_KEY ?? "rapi-ВАШ_КЛЮЧ",
-  baseURL: "https://n8n.ruscapi.ru/webhook/v1",
+  baseURL: "https://api.ruscapi.ru/v1",
 });
 
 async function chat(
@@ -477,7 +564,7 @@ import (
 
 func main() {
     config := openai.DefaultConfig("rapi-ВАШ_КЛЮЧ")
-    config.BaseURL = "https://n8n.ruscapi.ru/webhook/v1"
+    config.BaseURL = "https://api.ruscapi.ru/v1"
     client := openai.NewClientWithConfig(config)
 
     resp, err := client.CreateChatCompletion(
@@ -485,13 +572,12 @@ func main() {
         openai.ChatCompletionRequest{
             Model: "PER:gpt4o",
             Messages: []openai.ChatCompletionMessage{
-                {Role: openai.ChatMessageRoleSystem, Content: "Ты полезный ассистент."},
-                {Role: openai.ChatMessageRoleUser,   Content: "Расскажи про язык Go."},
+                {Role: openai.ChatMessageRoleUser, Content: "Привет от Go!"},
             },
         },
     )
     if err != nil {
-        fmt.Printf("Ошибка: %v\n", err)
+        fmt.Fprintf(os.Stderr, "Ошибка: %v\n", err)
         os.Exit(1)
     }
     fmt.Println(resp.Choices[0].Message.Content)
@@ -512,7 +598,7 @@ require_once 'vendor/autoload.php';
 use GuzzleHttp\Client;
 
 $http = new Client();
-$response = $http->post("https://n8n.ruscapi.ru/webhook/v1/chat/completions", [
+$response = $http->post("https://api.ruscapi.ru/v1/chat/completions", [
     'headers' => [
         'Authorization' => 'Bearer rapi-ВАШ_КЛЮЧ',
         'Content-Type'  => 'application/json',
@@ -545,7 +631,7 @@ Lemonade — нативный n8n-пакет для работы с OpenAI-со�
 
 | Поле | Значение |
 |------|---------|
-| **Base URL** | `https://n8n.ruscapi.ru/webhook/v1` |
+| **Base URL** | `https://api.ruscapi.ru/v1` |
 | **API Key** | `rapi-ВАШ_КЛЮЧ` |
 
 3. **Test Connection** → `Connection tested successfully ✅`
@@ -582,7 +668,7 @@ Send Telegram Message
 1. Добавьте ноду **OpenAI Chat Model**
 2. Credential → **OpenAI API**:
    - **API Key:** `rapi-ВАШ_КЛЮЧ`
-   - **Base URL:** `https://n8n.ruscapi.ru/webhook/v1`
+   - **Base URL:** `https://api.ruscapi.ru/v1`
 3. В поле **Model** введите ID вручную: `PER:gpt4o`
 
 ---
@@ -592,7 +678,7 @@ Send Telegram Message
 | Поле | Значение |
 |------|---------|
 | Method | `POST` |
-| URL | `https://n8n.ruscapi.ru/webhook/v1/chat/completions` |
+| URL | `https://api.ruscapi.ru/v1/chat/completions` |
 | Authentication | `Generic Credential Type` → `Header Auth` |
 | Header Name | `Authorization` |
 | Header Value | `Bearer rapi-ВАШ_КЛЮЧ` |
@@ -616,7 +702,7 @@ Send Telegram Message
 
 1. **Settings** → **Connections** → **Add Connection**
 2. Заполните:
-   - **API Base URL:** `https://n8n.ruscapi.ru/webhook/v1`
+   - **API Base URL:** `https://api.ruscapi.ru/v1`
    - **API Key:** `rapi-ВАШ_КЛЮЧ`
 3. **Save** — модели подгружаются автоматически
 
@@ -795,7 +881,7 @@ import httpx, json
 
 with httpx.stream(
     "POST",
-    "https://n8n.ruscapi.ru/webhook/v1/chat/completions",
+    "https://api.ruscapi.ru/v1/chat/completions",
     headers={
         "Authorization": "Bearer rapi-ВАШ_КЛЮЧ",
         "Content-Type": "application/json"
@@ -831,7 +917,7 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key="rapi-ВАШ_КЛЮЧ",
-    base_url="https://n8n.ruscapi.ru/webhook/v1"
+    base_url="https://api.ruscapi.ru/v1"
 )
 
 tools = [{
@@ -867,7 +953,7 @@ else:
 
 **curl:**
 ```bash
-curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
+curl https://api.ruscapi.ru/v1/chat/completions \
   -H "Authorization: Bearer rapi-ВАШ_КЛЮЧ" \
   -H "Content-Type: application/json" \
   -d '{
@@ -895,15 +981,15 @@ curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
 
 | Тариф | Запросов/мин | Контекстное окно | Макс. ответ | Тарификация токенов | Срок |
 |-------|-------------|-----------------|-------------|---------------------|------|
-| 🟢 Start | 5 | 65 536 токенов | 32 768 токенов | ♾️ Безлимит | 30 дней |
-| 🔵 Business | 15 | 65 536 токенов | 32 768 токенов | ♾️ Безлимит | 30 дней |
-| 🟣 Pro | 30 | 65 536 токенов | 32 768 токенов | ♾️ Безлимит | 30 дней |
-| ⭐ Ultra | 60 | 65 536 токенов | 32 768 токенов | ♾️ Безлимит | 30 дней |
-| 🧪 Тестовый | 5 | 65 536 токенов | 32 768 токенов | ♾️ Безлимит | 24 часа |
+| 🟢 Start | 5 | 128 000 токенов | 65 536 токенов | ♾️ Безлимит | 30 дней |
+| 🔵 Business | 15 | 128 000 токенов | 65 536 токенов | ♾️ Безлимит | 30 дней |
+| 🟣 Pro | 30 | 128 000 токенов | 65 536 токенов | ♾️ Безлимит | 30 дней |
+| ⭐ Ultra | 60 | 128 000 токенов | 65 536 токенов | ♾️ Безлимит | 30 дней |
+| 🧪 Тестовый | 5 | 128 000 токенов | 65 536 токенов | ♾️ Безлимит | 24 часа |
 
-> **Контекстное окно (65 536 токенов)** — суммарный лимит одного запроса: все входящие сообщения диалога и ответ модели в сумме не должны превышать это значение. Шлюз проверяет его на уровне Token Limit Validator до отправки запроса провайдеру.
+> **Контекстное окно (128 000 токенов)** — суммарный лимит одного запроса: все входящие сообщения диалога и ответ модели в сумме не должны превышать это значение.
 >
-> **Макс. ответ (32 768 токенов)** — значение `max_tokens`, которое шлюз декларирует в `/v1/models` и передаёт AI-агентам (Kilo Code, Cursor, Claude Code, Continue) для автоматического управления контекстом. Вдвое превышает лимит GPT-4o (16 384) и вчетверо — Anthropic Claude 3.5 (8 192). Можно переопределить в теле запроса.
+> **Макс. ответ (65 536 токенов)** — значение `max_tokens`, которое шлюз декларирует в `/v1/models` и передаёт AI-агентам (Kilo Code, Cursor, Claude Code, Continue) для автоматического управления контекстом. Вчетверо превышает лимит GPT-4o (16 384) и восьмикратно — Anthropic Claude 3.5 (8 192). Можно переопределить в теле запроса.
 
 ---
 
@@ -931,20 +1017,19 @@ A: OpenRouter подключён напрямую к официальным API 
 **Q: Почему Perplexity-модели не следуют системному промпту?**
 A: Модели `PER:` не обрабатывают поле `system` так, как ожидается. Помещайте все инструкции (роль, задачу, формат ответа) в поле `user`.
 
-
 **Q: В чём отличие от прямого доступа к OpenAI или Anthropic?**
-A: Нет тарификации по токенам — фиксированная подписка. Не нужно следить за балансом. Доступны модели от нескольких провайдеров через один ключ. Контекстное окно — 65 536 токенов (вход + выход суммарно).
+A: Нет тарификации по токенам — фиксированная подписка. Не нужно следить за балансом. Доступны модели от нескольких провайдеров через один ключ. Контекстное окно — 128 000 токенов (вход + выход суммарно).
 
 **Q: Что такое контекстное окно и чему оно равно?**
-A: Контекстное окно — суммарный объём токенов, который модель обрабатывает за один проход: входящие сообщения (системный промпт + история диалога + текущий запрос) плюс генерируемый ответ. У Ai RAPI это **65 536 токенов** — единое значение для всех тарифов и всех моделей.
+A: Контекстное окно — суммарный объём токенов, который модель обрабатывает за один проход: входящие сообщения (системный промпт + история диалога + текущий запрос) плюс генерируемый ответ. У Ai RAPI это **128 000 токенов** — единое значение для всех тарифов и всех моделей.
 
 Значение передаётся автоматически через `GET /v1/models` в поле `context_length`. AI-агенты с автоматическим управлением контекстом (Kilo Code, Cursor, Claude Code, Continue) читают его при подключении и используют для расчёта, когда начинать сжатие истории диалога.
 
 **Q: Каков максимальный размер ответа модели?**
-A: Шлюз декларирует `max_tokens = 32 768` в ответе `/v1/models` — это 50% контекстного окна, зарезервированные под генерацию. Для сравнения: OpenAI GPT-4o ограничивает ответ 16 384 токенами, Anthropic Claude 3.5 — 8 192 токенами. При необходимости значение можно задать вручную в теле запроса через параметр `max_tokens`.
+A: Шлюз декларирует `max_tokens = 65 536` в ответе `/v1/models` — это 50% контекстного окна, зарезервированные под генерацию. Для сравнения: OpenAI GPT-4o ограничивает ответ 16 384 токенами, Anthropic Claude 3.5 — 8 192 токенами. При необходимости значение можно задать вручную в теле запроса через параметр `max_tokens`.
 
 **Q: Как AI-агенты (Kilo Code, Cursor, Claude Code и др.) работают с контекстным окном?**
-A: Автоматически. При подключении агент делает запрос `GET /v1/models`, получает `context_length = 65536` для каждой модели и настраивает внутренний порог сжатия контекста. Никаких ручных настроек не требуется — агент сам обрезает историю диалога при приближении к лимиту.
+A: Автоматически. При подключении агент делает запрос `GET /v1/models`, получает `context_length = 128000` для каждой модели и настраивает внутренний порог сжатия контекста. Никаких ручных настроек не требуется — агент сам обрезает историю диалога при приближении к лимиту.
 
 **Q: Когда начинается срок действия ключа?**
 A: С момента **первого запроса** к API, не с момента покупки.
@@ -962,7 +1047,7 @@ A: Нет. В текущей версии доступны только текс
 A: Через [@ai_rapi_bot](https://t.me/ai_rapi_bot) → **Мои ключи**.
 
 **Q: Работает с LangChain / LlamaIndex / AutoGen?**
-A: Да — укажите `base_url = "https://n8n.ruscapi.ru/webhook/v1"` и ваш ключ.
+A: Да — укажите `base_url = "https://api.ruscapi.ru/v1"` и ваш ключ.
 
 **Q: Что если провайдер не отвечает?**
 A: Система автоматически переключается на резервный провайдер.
