@@ -54,26 +54,24 @@
 
 Unlike direct access to OpenAI, Anthropic or Google where every token is billed individually and costs are unpredictable, **Ai RAPI operates on a fixed subscription with no token-based charges**. Write long prompts, process large documents, run autonomous agents — the cost stays the same.
 
-> **Gateway context window — 65 536 tokens.**
+> **Gateway context window — 128 000 tokens.**
 >
-> Ai RAPI proxies requests to providers (Perplexity, Cohere, HuggingFace, Nvidia) through a unified gateway. Since the gateway forwards the entire conversation context to the provider in a single request, the gateway's context window equals the maximum size of that request. The 65 536-token value is a production cap established through load testing: providers begin returning errors under sustained load with context exceeding this threshold.
+> Ai RAPI proxies requests to providers (Perplexity, Cohere, HuggingFace, Nvidia) through a unified gateway. The gateway forwards the entire conversation context to the provider in a single request.
 >
 > Parameters the gateway exposes automatically via `GET /v1/models`:
-> - `context_length` = **65 536** — full context window size (input + output combined)
-> - `max_tokens` = **32 768** — recommended generation limit (50% of the window, leaving room for incoming context)
+> - `context_length` = **128 000** — full context window size (input + output combined)
+> - `max_tokens` = **65 536** — recommended generation limit (50% of the window, leaving room for incoming context)
 >
 > AI coding agents such as Kilo Code, Cursor, Claude Code and Continue read `context_length` on connection and automatically manage context compression — no manual configuration required.
 
 | | OpenAI GPT-4o | Anthropic Claude 3.5 | **Ai RAPI** |
 |--|---|---|---|
 | Billing | Per token (~$2.5–$10 / 1M) | Per token (~$3–$15 / 1M) | ✅ Fixed subscription |
-| Context window | 128 000 tokens | 200 000 tokens | 65 536 tokens |
-| Max response length (`max_tokens`) | 16 384 tokens | 8 192 tokens | ✅ **32 768 tokens** |
+| Context window | 128 000 tokens | 200 000 tokens | ✅ **128 000 tokens** |
+| Max response length (`max_tokens`) | 16 384 tokens | 8 192 tokens | ✅ **65 536 tokens** |
 | Models available | OpenAI only | Claude only | ✅ 48 models, 4 providers |
 | `context_length` reported to agents | ✅ | ✅ | ✅ Automatically |
 | Predictable costs | ❌ | ❌ | ✅ |
-
-> **Why is the context window smaller than official APIs?** The gateway forwards the entire conversation context to the provider in a single HTTP request — the context window equals the maximum size of that request. 65 536 tokens is the production cap validated under load: exceeding it causes providers to return errors consistently. In exchange, the maximum response length (32 768 tokens) is twice that of OpenAI GPT-4o (16 384) and four times that of Anthropic Claude 3.5 (8 192).
 
 **Supported clients:** Python SDK, JavaScript SDK, n8n, OpenWebUI, LangChain, AutoGen, and any OpenAI-compatible client.
 
@@ -85,14 +83,14 @@ All plans include **unlimited token usage**. The only difference between plans i
 
 | Plan | Requests/min | Context Window | Max Response | Duration |
 |------|-------------|----------------|--------------|----------|
-| 🟢 **Start** | 5 RPM | 65 536 tokens | 32 768 tokens | 30 days |
-| 🔵 **Business** | 15 RPM | 65 536 tokens | 32 768 tokens | 30 days |
-| 🟣 **Pro** | 30 RPM | 65 536 tokens | 32 768 tokens | 30 days |
-| ⭐ **Ultra** | 60 RPM | 65 536 tokens | 32 768 tokens | 30 days |
+| 🟢 **Start** | 5 RPM | 128 000 tokens | 65 536 tokens | 30 days |
+| 🔵 **Business** | 15 RPM | 128 000 tokens | 65 536 tokens | 30 days |
+| 🟣 **Pro** | 30 RPM | 128 000 tokens | 65 536 tokens | 30 days |
+| ⭐ **Ultra** | 60 RPM | 128 000 tokens | 65 536 tokens | 30 days |
 
 > Duration starts from the **first API request**, not from purchase date.
 >
-> **Context window (65 536 tokens)** — combined limit for one API call: all conversation messages (system prompt + history + current request) and the model response together must not exceed this value. **Max response (32 768 tokens)** — the recommended generation limit, advertised to agents via `GET /v1/models`. Can be overridden via the `max_tokens` parameter in the request body.
+> **Context window (128 000 tokens)** — combined limit for one API call: all conversation messages (system prompt + history + current request) and the model response together must not exceed this value. **Max response (65 536 tokens)** — the recommended generation limit, advertised to agents via `GET /v1/models`. Can be overridden via the `max_tokens` parameter in the request body.
 
 👉 [Get a key via Telegram bot @ai_rapi_bot](https://t.me/ai_rapi_bot)
 
@@ -110,7 +108,7 @@ rapi-start1a2b3c4d5e6f7890...
 ### Step 2 — Make Your First Request
 
 ```bash
-curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
+curl https://api.ruscapi.ru/v1/chat/completions \
   -H "Authorization: Bearer rapi-YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -123,7 +121,7 @@ curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
 
 | Parameter | Value |
 |-----------|-------|
-| **Base URL** | `https://n8n.ruscapi.ru/webhook/v1` |
+| **Base URL** | `https://api.ruscapi.ru/v1` |
 | **Chat completions** | `POST /chat/completions` |
 | **Model list** | `GET /models` (no auth required) |
 | **Authorization** | `Authorization: Bearer rapi-YOUR_KEY` |
@@ -153,53 +151,69 @@ The `/models` endpoint is public — **no authorization required**. Current list
 ```bash
 # Full list with providers
 echo "MODEL LIST:" && \
-curl -s "https://n8n.ruscapi.ru/webhook/v1/models" | \
+curl -s "https://api.ruscapi.ru/v1/models" | \
 jq -r '.data[] | "\(.display_name)\t\(.owned_by)"' | \
 awk -F'\t' '{printf "%-60s %s\n", $1, $2}'
 
 # Statistics
 echo -e "\nTOTAL MODELS:"
-curl -s "https://n8n.ruscapi.ru/webhook/v1/models" | \
+curl -s "https://api.ruscapi.ru/v1/models" | \
 jq -r '"Total: \(.data | length)"'
 
 echo -e "\nBY PROVIDER:"
-curl -s "https://n8n.ruscapi.ru/webhook/v1/models" | \
+curl -s "https://api.ruscapi.ru/v1/models" | \
 jq -r '.data | group_by(.owned_by) | map({name: .[0].owned_by, count: length}) | sort_by(-.count) | .[] | "\(.name): \(.count)"'
 
 # Text models only
-curl -s "https://n8n.ruscapi.ru/webhook/v1/models?type=text" | jq -r '.data[].id'
+curl -s "https://api.ruscapi.ru/v1/models?type=text" | jq -r '.data[].id'
 
 # Models with tools (Nvidia only)
-curl -s "https://n8n.ruscapi.ru/webhook/v1/models?provider=NVI" | jq -r '.data[].id'
+curl -s "https://api.ruscapi.ru/v1/models?provider=NVI" | jq -r '.data[].id'
 
 # By provider
-curl -s "https://n8n.ruscapi.ru/webhook/v1/models?provider=PER" | jq -r '.data[].id'  # Perplexity
-curl -s "https://n8n.ruscapi.ru/webhook/v1/models?provider=COH" | jq -r '.data[].id'  # CohereForAI
-curl -s "https://n8n.ruscapi.ru/webhook/v1/models?provider=HUG" | jq -r '.data[].id'  # HuggingSpace
+curl -s "https://api.ruscapi.ru/v1/models?provider=PER" | jq -r '.data[].id'  # Perplexity
+curl -s "https://api.ruscapi.ru/v1/models?provider=COH" | jq -r '.data[].id'  # CohereForAI
+curl -s "https://api.ruscapi.ru/v1/models?provider=HUG" | jq -r '.data[].id'  # HuggingSpace
 ```
 
 ### PowerShell (Windows)
 
 ```powershell
-# Full model list
-$response = Invoke-RestMethod -Uri "https://n8n.ruscapi.ru/webhook/v1/models"
-$models = $response.data
+# ── Full model list ────────────────────────────────────────────────────────
+$r = Invoke-RestMethod -Uri "https://api.ruscapi.ru/v1/models"
+Write-Host "`nMODEL LIST ($($r.data.Count) models):" -ForegroundColor Cyan
+$r.data | Sort-Object owned_by | Format-Table -Property @{L='Model';E={$_.id}}, @{L='Provider';E={$_.owned_by}} -AutoSize
 
-$output = @()
-$output += "MODEL LIST:"
-$output += $models | Format-Table -Property display_name, owned_by -AutoSize | Out-String
-$output += "`nSTATISTICS:"
-$output += "Total models: $($models.Count)"
+# ── Statistics by provider ─────────────────────────────────────────────────
+Write-Host "`nBY PROVIDER:" -ForegroundColor Yellow
+$r.data | Group-Object owned_by | Sort-Object Count -Descending |
+    ForEach-Object { Write-Host "  $($_.Name): $($_.Count) models" }
 
-$providers = $models | Group-Object -Property owned_by | Sort-Object -Property Count -Descending
-$output += "`nBY PROVIDER:"
-$providers | ForEach-Object { $output += "$($_.Name): $($_.Count)" }
-$output | Out-String
+# ── Perplexity models only ─────────────────────────────────────────────────
+Write-Host "`nMODELS — Perplexity (PER):" -ForegroundColor Green
+(Invoke-RestMethod "https://api.ruscapi.ru/v1/models?provider=PER").data |
+    Select-Object -ExpandProperty id
 
-# Models with tools support (Nvidia only)
-$toolsModels = Invoke-RestMethod -Uri "https://n8n.ruscapi.ru/webhook/v1/models?provider=NVI"
-Write-Output "`nModels with tools:"
-$toolsModels.data | Select-Object id, owned_by | Format-Table -AutoSize
+# ── Nvidia models only (tools-capable) ────────────────────────────────────
+Write-Host "`nMODELS — Nvidia / tools (NVI):" -ForegroundColor Magenta
+(Invoke-RestMethod "https://api.ruscapi.ru/v1/models?provider=NVI").data |
+    Select-Object -ExpandProperty id
+
+# ── CohereForAI models only ────────────────────────────────────────────────
+Write-Host "`nMODELS — CohereForAI (COH):" -ForegroundColor Blue
+(Invoke-RestMethod "https://api.ruscapi.ru/v1/models?provider=COH").data |
+    Select-Object -ExpandProperty id
+
+# ── HuggingSpace models only ───────────────────────────────────────────────
+Write-Host "`nMODELS — HuggingSpace (HUG):" -ForegroundColor DarkYellow
+(Invoke-RestMethod "https://api.ruscapi.ru/v1/models?provider=HUG").data |
+    Select-Object -ExpandProperty id
+
+# ── Context window and max_tokens per model ────────────────────────────────
+Write-Host "`nCONTEXT WINDOW INFO:" -ForegroundColor Cyan
+$r.data | Format-Table -Property @{L='Model';E={$_.id}},
+    @{L='context_length';E={$_.context_length}},
+    @{L='max_tokens';E={$_.max_tokens}} -AutoSize
 ```
 
 ---
@@ -213,7 +227,7 @@ $toolsModels.data | Select-Object id, owned_by | Format-Table -AutoSize
 
 ```bash
 # GPT-4o via Perplexity
-curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
+curl https://api.ruscapi.ru/v1/chat/completions \
   -H "Authorization: Bearer rapi-YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -225,23 +239,23 @@ curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
   }'
 
 # Claude 4.5 Sonnet via Perplexity
-curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
+curl https://api.ruscapi.ru/v1/chat/completions \
   -H "Authorization: Bearer rapi-YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"PER:claude45sonnet","messages":[{"role":"user","content":"Hello from Claude!"}]}'
 
 # Command R+ via Cohere
-curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
+curl https://api.ruscapi.ru/v1/chat/completions \
   -H "Authorization: Bearer rapi-YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model":"COH:command-r-plus-08-2024","messages":[{"role":"user","content":"Tell me about yourself."}]}'
 
 # Streaming
-curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
+curl https://api.ruscapi.ru/v1/chat/completions \
   -H "Authorization: Bearer rapi-YOUR_KEY" \
   -H "Content-Type: application/json" \
   --no-buffer \
-  -d '{"model":"PER:gpt4o","messages":[{"role":"user","content":"Write a haiku about autumn."}],"stream":true}'
+  -d '{"model":"PER:gpt4o","messages":[{"role":"user","content":"Write a poem about autumn."}],"stream":true}'
 ```
 
 ---
@@ -249,7 +263,7 @@ curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
 ### PowerShell (Windows)
 
 ```powershell
-# Simple request
+# ── Simple request ─────────────────────────────────────────────────────────
 $headers = @{
     "Authorization" = "Bearer rapi-YOUR_KEY"
     "Content-Type"  = "application/json"
@@ -265,7 +279,7 @@ $body = @{
 
 $response = Invoke-RestMethod `
     -Method POST `
-    -Uri "https://n8n.ruscapi.ru/webhook/v1/chat/completions" `
+    -Uri "https://api.ruscapi.ru/v1/chat/completions" `
     -Headers $headers `
     -Body $body
 
@@ -273,7 +287,7 @@ Write-Output $response.choices[0].message.content
 ```
 
 ```powershell
-# Multi-turn conversation
+# ── Multi-turn conversation ────────────────────────────────────────────────
 $headers = @{
     "Authorization" = "Bearer rapi-YOUR_KEY"
     "Content-Type"  = "application/json"
@@ -287,12 +301,85 @@ while ($true) {
     $messages += @{ role = "user"; content = $userInput }
     $body = @{ model = "PER:claude45sonnet"; messages = $messages } | ConvertTo-Json -Depth 10
     $response = Invoke-RestMethod -Method POST `
-        -Uri "https://n8n.ruscapi.ru/webhook/v1/chat/completions" `
+        -Uri "https://api.ruscapi.ru/v1/chat/completions" `
         -Headers $headers -Body $body
 
     $reply = $response.choices[0].message.content
     $messages += @{ role = "assistant"; content = $reply }
     Write-Output "AI: $reply`n"
+}
+```
+
+```powershell
+# ── Streaming (SSE) — token-by-token output ────────────────────────────────
+$headers = @{
+    "Authorization" = "Bearer rapi-YOUR_KEY"
+    "Content-Type"  = "application/json"
+}
+$body = @{
+    model    = "PER:gpt4o"
+    messages = @(@{ role = "user"; content = "Write a poem about autumn." })
+    stream   = $true
+} | ConvertTo-Json -Depth 10
+
+$request = [System.Net.WebRequest]::Create("https://api.ruscapi.ru/v1/chat/completions")
+$request.Method = "POST"
+$request.ContentType = "application/json"
+$request.Headers.Add("Authorization", "Bearer rapi-YOUR_KEY")
+$bytes = [System.Text.Encoding]::UTF8.GetBytes($body)
+$request.ContentLength = $bytes.Length
+$stream = $request.GetRequestStream()
+$stream.Write($bytes, 0, $bytes.Length)
+$stream.Close()
+
+$response = $request.GetResponse()
+$reader = New-Object System.IO.StreamReader($response.GetResponseStream())
+while (-not $reader.EndOfStream) {
+    $line = $reader.ReadLine()
+    if ($line -match '^data: (.+)$' -and $Matches[1] -ne '[DONE]') {
+        $chunk = $Matches[1] | ConvertFrom-Json
+        $content = $chunk.choices[0].delta.content
+        if ($content) { Write-Host $content -NoNewline }
+    }
+}
+Write-Host ""
+$reader.Close()
+```
+
+```powershell
+# ── Function calling (NVI: models only) ───────────────────────────────────
+$headers = @{
+    "Authorization" = "Bearer rapi-YOUR_KEY"
+    "Content-Type"  = "application/json"
+}
+$body = @{
+    model    = "NVI:nvidia/llama-3.3-nemotron-super-49b-v1.5"
+    messages = @(@{ role = "user"; content = "What's the weather in London?" })
+    tools    = @(@{
+        type     = "function"
+        function = @{
+            name        = "get_weather"
+            description = "Get the current weather in a city"
+            parameters  = @{
+                type       = "object"
+                properties = @{ city = @{ type = "string"; description = "City name" } }
+                required   = @("city")
+            }
+        }
+    })
+    tool_choice = "auto"
+} | ConvertTo-Json -Depth 10
+
+$response = Invoke-RestMethod -Method POST `
+    -Uri "https://api.ruscapi.ru/v1/chat/completions" `
+    -Headers $headers -Body $body
+
+$toolCall = $response.choices[0].message.tool_calls[0]
+if ($toolCall) {
+    Write-Host "Function: $($toolCall.function.name)"
+    Write-Host "Arguments: $($toolCall.function.arguments)"
+} else {
+    Write-Host $response.choices[0].message.content
 }
 ```
 
@@ -309,7 +396,7 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key="rapi-YOUR_KEY",
-    base_url="https://n8n.ruscapi.ru/webhook/v1"
+    base_url="https://api.ruscapi.ru/v1"
 )
 
 # --- GPT-4o via Perplexity ---
@@ -325,7 +412,7 @@ print(response.choices[0].message.content)
 # --- Claude 4.5 Sonnet ---
 response = client.chat.completions.create(
     model="PER:claude45sonnet",
-    messages=[{"role": "user", "content": "Write a brief introduction about yourself."}]
+    messages=[{"role": "user", "content": "Write a short bio about yourself."}]
 )
 print(response.choices[0].message.content)
 
@@ -372,7 +459,7 @@ import OpenAI from "openai";
 
 const client = new OpenAI({
   apiKey: "rapi-YOUR_KEY",
-  baseURL: "https://n8n.ruscapi.ru/webhook/v1",
+  baseURL: "https://api.ruscapi.ru/v1",
 });
 
 // GPT-4o via Perplexity
@@ -410,7 +497,7 @@ console.log();
 const OpenAI = require("openai");
 const client = new OpenAI({
   apiKey: "rapi-YOUR_KEY",
-  baseURL: "https://n8n.ruscapi.ru/webhook/v1",
+  baseURL: "https://api.ruscapi.ru/v1",
 });
 
 async function main() {
@@ -433,7 +520,7 @@ import type { ChatCompletionMessageParam } from "openai/resources/chat";
 
 const client = new OpenAI({
   apiKey: process.env.RAPI_API_KEY ?? "rapi-YOUR_KEY",
-  baseURL: "https://n8n.ruscapi.ru/webhook/v1",
+  baseURL: "https://api.ruscapi.ru/v1",
 });
 
 async function chat(
@@ -477,7 +564,7 @@ import (
 
 func main() {
     config := openai.DefaultConfig("rapi-YOUR_KEY")
-    config.BaseURL = "https://n8n.ruscapi.ru/webhook/v1"
+    config.BaseURL = "https://api.ruscapi.ru/v1"
     client := openai.NewClientWithConfig(config)
 
     resp, err := client.CreateChatCompletion(
@@ -485,13 +572,12 @@ func main() {
         openai.ChatCompletionRequest{
             Model: "PER:gpt4o",
             Messages: []openai.ChatCompletionMessage{
-                {Role: openai.ChatMessageRoleSystem, Content: "You are a helpful assistant."},
-                {Role: openai.ChatMessageRoleUser,   Content: "Tell me about the Go language."},
+                {Role: openai.ChatMessageRoleUser, Content: "Hello from Go!"},
             },
         },
     )
     if err != nil {
-        fmt.Printf("Error: %v\n", err)
+        fmt.Fprintf(os.Stderr, "Error: %v\n", err)
         os.Exit(1)
     }
     fmt.Println(resp.Choices[0].Message.Content)
@@ -512,7 +598,7 @@ require_once 'vendor/autoload.php';
 use GuzzleHttp\Client;
 
 $http = new Client();
-$response = $http->post("https://n8n.ruscapi.ru/webhook/v1/chat/completions", [
+$response = $http->post("https://api.ruscapi.ru/v1/chat/completions", [
     'headers' => [
         'Authorization' => 'Bearer rapi-YOUR_KEY',
         'Content-Type'  => 'application/json',
@@ -534,7 +620,7 @@ echo $body['choices'][0]['message']['content'] . PHP_EOL;
 
 ## 🔧 Using with n8n
 
-### Via Lemonade Chat Model (Recommended)
+### Via Lemonade Chat Model (recommended)
 
 Lemonade is a native n8n package for working with OpenAI-compatible servers.
 
@@ -545,7 +631,7 @@ Lemonade is a native n8n package for working with OpenAI-compatible servers.
 
 | Field | Value |
 |-------|-------|
-| **Base URL** | `https://n8n.ruscapi.ru/webhook/v1` |
+| **Base URL** | `https://api.ruscapi.ru/v1` |
 | **API Key** | `rapi-YOUR_KEY` |
 
 3. **Test Connection** → `Connection tested successfully ✅`
@@ -558,7 +644,7 @@ Lemonade is a native n8n package for working with OpenAI-compatible servers.
    - **Credential:** `Ai-Rapi`
    - **Model:** `PER:gpt4o` or `PER:claude45sonnet`
 
-> ⚠️ **Tools in n8n:** if you need an AI Agent with tools (Code Tool, Calculator, etc.), use exclusively **Nvidia** models (`NVI:`). All other providers do not support tools.
+> ⚠️ **Tools in n8n:** if you need an AI Agent with tools (Code Tool, Calculator, etc.), use **Nvidia** models (`NVI:`) exclusively. All other providers do not support tools.
 
 #### Example AI Agent Workflow
 
@@ -579,20 +665,20 @@ Send Telegram Message
 
 ### Via OpenAI Chat Model
 
-1. Add an **OpenAI Chat Model** node
+1. Add the **OpenAI Chat Model** node
 2. Credential → **OpenAI API**:
    - **API Key:** `rapi-YOUR_KEY`
-   - **Base URL:** `https://n8n.ruscapi.ru/webhook/v1`
-3. In the **Model** field, enter the ID manually: `PER:gpt4o`
+   - **Base URL:** `https://api.ruscapi.ru/v1`
+3. In the **Model** field, type the ID manually: `PER:gpt4o`
 
 ---
 
-### Via HTTP Request Node (Universal)
+### Via HTTP Request Node (universal)
 
 | Field | Value |
 |-------|-------|
 | Method | `POST` |
-| URL | `https://n8n.ruscapi.ru/webhook/v1/chat/completions` |
+| URL | `https://api.ruscapi.ru/v1/chat/completions` |
 | Authentication | `Generic Credential Type` → `Header Auth` |
 | Header Name | `Authorization` |
 | Header Value | `Bearer rapi-YOUR_KEY` |
@@ -605,7 +691,7 @@ Send Telegram Message
 }
 ```
 
-**Get response:**
+**Extract response:**
 ```
 ={{ $json.choices[0].message.content }}
 ```
@@ -616,7 +702,7 @@ Send Telegram Message
 
 1. **Settings** → **Connections** → **Add Connection**
 2. Fill in:
-   - **API Base URL:** `https://n8n.ruscapi.ru/webhook/v1`
+   - **API Base URL:** `https://api.ruscapi.ru/v1`
    - **API Key:** `rapi-YOUR_KEY`
 3. **Save** — models load automatically
 
@@ -624,31 +710,33 @@ Send Telegram Message
 
 ## ✍️ Prompt Engineering for Ai RAPI
 
-Ai RAPI is an aggregator that routes requests to models hosted by different **providers** (Perplexity, Cohere, HuggingSpace, Nvidia). Providers are not model manufacturers — they are companies that host models with their own configurations, system prompts and fine-tuning. As a result, the same model may behave differently through Ai RAPI versus its official API.
+Ai RAPI is an aggregator that routes requests to models hosted by different **providers** (Perplexity, Cohere, HuggingSpace, Nvidia). Providers are not the model manufacturers — they are companies that host the models with their own configurations, system prompts and fine-tuning. As a result, the same model through Ai RAPI and through an official API (e.g. OpenAI or Anthropic directly) may behave differently.
+
+Two key principles help you get consistently high-quality results.
 
 ---
 
-### ⚠️ Perplexity Models: Avoid Using `system`
+### ⚠️ Perplexity Models: avoid the `system` field
 
-Models from provider **Perplexity** (`PER:`) ignore or poorly handle the `system` field. **All content — role definition, task, instructions — must be placed in the `user` field.**
+**Perplexity** provider models (`PER:`) ignore or handle the `system` field poorly. **Place all content — role, task, instructions — in the `user` field.**
 
-**Cohere** (`COH:`) and **Nvidia** (`NVI:`) models work correctly with standard `system` / `user` separation.
+**Cohere** (`COH:`) and **Nvidia** (`NVI:`) models handle the standard `system` / `user` split correctly.
 
 ---
 
-### 🔑 Universal Approach: Everything in `user`, No `system`
+### 🔑 Universal Approach: everything in `user`, no `system`
 
-Since the API normalises requests to OpenAI-compatible format and different model families handle `system` differently, the **most reliable universal approach** is to merge the system prompt and user data into a single `user` message.
+Since the API converts requests to OpenAI-compatible format, and different model families handle `system` differently (OpenAI — highest priority, Claude — lowest), **the most reliable and universal approach** is to merge the system prompt and user data into a single `user` field. Leave `system` empty or omit it entirely.
 
-**The "nesting" principle — system instructions wrap the input data:**
+**The "nesting" principle:** system instructions wrap the input data inside a single `user` message:
 
 ```
 [SYSTEM INSTRUCTIONS]
-   [INPUT DATA FROM USER]
-[CONTINUATION / FINAL DIRECTIVE]
+   [USER INPUT DATA]
+[CONTINUATION OF INSTRUCTIONS / FINAL DIRECTIVE]
 ```
 
-**❌ Unreliable (especially for Perplexity and Claude models via this API):**
+**❌ Unreliable (especially for Perplexity and Claude models through our API):**
 ```json
 {
   "messages": [
@@ -664,7 +752,7 @@ Since the API normalises requests to OpenAI-compatible format and different mode
   "messages": [
     {
       "role": "user",
-      "content": "You are an analyst. Be concise.\n\nInput data:\n...data...\n\nOutput only the result."
+      "content": "You are an analyst. Be concise.\n\nInput data for analysis:\n...data...\n\nOutput only the result."
     }
   ]
 }
@@ -674,7 +762,7 @@ Since the API normalises requests to OpenAI-compatible format and different mode
 
 ### 📐 Universal Prompt Template
 
-Use this structure as a base. Replace `<...>` with your content; optional blocks can be removed.
+Use this structure as your base. Replace `<...>` with your content; optional blocks can be removed.
 
 ```
 ════════════════════════════════
@@ -760,20 +848,20 @@ FINAL OUTPUT
 Return ONLY the final result in the exact format defined in CRITICAL OUTPUT FORMAT.
 ```
 
-> **This template outperforms standard `system`/`user` separation even when connecting directly to official model provider APIs.**
+> **This template outperforms the standard `system`/`user` split even when connecting directly to official model provider APIs.**
 
 ---
 
 ### 🗂️ Provider Quick Reference
 
 | Provider | Prefix | `system` field | Recommended approach |
-|----------|--------|---------------|---------------------|
-| Perplexity | `PER:` | ⚠️ Doesn't work | Everything in `user` |
+|----------|--------|----------------|---------------------|
+| Perplexity | `PER:` | ⚠️ Does not work | Everything in `user` |
 | CohereForAI | `COH:` | ✅ Works | `system` + `user` or everything in `user` |
 | HuggingSpace | `HUG:` | ⚠️ Unstable | Everything in `user` |
 | Nvidia | `NVI:` | ✅ Works | `system` + `user` or everything in `user` |
 
-**Universal advice:** use the "everything in `user`" approach — it works consistently across all providers without exception.
+**Universal advice:** use the "everything in `user`" approach — it works correctly with all providers without exception.
 
 ---
 
@@ -793,7 +881,7 @@ import httpx, json
 
 with httpx.stream(
     "POST",
-    "https://n8n.ruscapi.ru/webhook/v1/chat/completions",
+    "https://api.ruscapi.ru/v1/chat/completions",
     headers={
         "Authorization": "Bearer rapi-YOUR_KEY",
         "Content-Type": "application/json"
@@ -829,7 +917,7 @@ from openai import OpenAI
 
 client = OpenAI(
     api_key="rapi-YOUR_KEY",
-    base_url="https://n8n.ruscapi.ru/webhook/v1"
+    base_url="https://api.ruscapi.ru/v1"
 )
 
 tools = [{
@@ -865,7 +953,7 @@ else:
 
 **curl:**
 ```bash
-curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
+curl https://api.ruscapi.ru/v1/chat/completions \
   -H "Authorization: Bearer rapi-YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -893,15 +981,15 @@ curl https://n8n.ruscapi.ru/webhook/v1/chat/completions \
 
 | Plan | Req/min | Context Window | Max Response | Token Billing | Duration |
 |------|---------|----------------|--------------|---------------|----------|
-| 🟢 Start | 5 | 65 536 tokens | 32 768 tokens | ♾️ Unlimited | 30 days |
-| 🔵 Business | 15 | 65 536 tokens | 32 768 tokens | ♾️ Unlimited | 30 days |
-| 🟣 Pro | 30 | 65 536 tokens | 32 768 tokens | ♾️ Unlimited | 30 days |
-| ⭐ Ultra | 60 | 65 536 tokens | 32 768 tokens | ♾️ Unlimited | 30 days |
-| 🧪 Trial | 5 | 65 536 tokens | 32 768 tokens | ♾️ Unlimited | 24 hours |
+| 🟢 Start | 5 | 128 000 tokens | 65 536 tokens | ♾️ Unlimited | 30 days |
+| 🔵 Business | 15 | 128 000 tokens | 65 536 tokens | ♾️ Unlimited | 30 days |
+| 🟣 Pro | 30 | 128 000 tokens | 65 536 tokens | ♾️ Unlimited | 30 days |
+| ⭐ Ultra | 60 | 128 000 tokens | 65 536 tokens | ♾️ Unlimited | 30 days |
+| 🧪 Trial | 5 | 128 000 tokens | 65 536 tokens | ♾️ Unlimited | 24 hours |
 
-> **Context Window (65 536 tokens)** — combined limit for a single API call: all conversation messages (system prompt + history + current request) and the model response must not exceed this value in total. Enforced at the gateway level by the Token Limit Validator before forwarding to the provider.
+> **Context Window (128 000 tokens)** — combined limit for a single API call: all conversation messages (system prompt + history + current request) and the model response must not exceed this value in total.
 >
-> **Max Response (32 768 tokens)** — the `max_tokens` value the gateway declares in `/v1/models` and advertises to AI agents (Kilo Code, Cursor, Claude Code, Continue) for automatic context management. Twice the limit of GPT-4o (16 384) and four times that of Anthropic Claude 3.5 (8 192). Can be overridden in the request body.
+> **Max Response (65 536 tokens)** — the `max_tokens` value the gateway declares in `/v1/models` and advertises to AI agents (Kilo Code, Cursor, Claude Code, Continue) for automatic context management. Four times the limit of GPT-4o (16 384) and eight times that of Anthropic Claude 3.5 (8 192). Can be overridden in the request body.
 
 ---
 
@@ -930,18 +1018,18 @@ A: OpenRouter connects directly to official model provider APIs. Ai RAPI routes 
 A: `PER:` models do not process the `system` field as expected. Place all instructions (role, task, output format) inside the `user` field.
 
 **Q: What is the difference from direct OpenAI or Anthropic access?**
-A: No per-token billing — fixed subscription. No need to monitor a balance. Access to models from multiple providers through a single key. Context window: 65 536 tokens (input + output combined).
+A: No per-token billing — fixed subscription. No need to monitor a balance. Access to models from multiple providers through a single key. Context window: 128 000 tokens (input + output combined).
 
 **Q: What is the context window and what is its size?**
-A: The context window is the total number of tokens a model processes in a single pass: all conversation messages (system prompt + history + current request) plus the model response. At Ai RAPI this is **65 536 tokens** — uniform across all plans and models.
+A: The context window is the total number of tokens a model processes in a single pass: all conversation messages (system prompt + history + current request) plus the model response. At Ai RAPI this is **128 000 tokens** — uniform across all plans and models.
 
 This value is exposed automatically via `GET /v1/models` in the `context_length` field. AI agents with automatic context management (Kilo Code, Cursor, Claude Code, Continue) read it on connection and use it to determine when to start compressing conversation history.
 
 **Q: What is the maximum response length?**
-A: The gateway declares `max_tokens = 32 768` in the `/v1/models` response — 50% of the context window reserved for generation. For comparison: OpenAI GPT-4o caps responses at 16 384 tokens, Anthropic Claude 3.5 at 8 192 tokens. You can override this by specifying `max_tokens` in the request body.
+A: The gateway declares `max_tokens = 65 536` in the `/v1/models` response — 50% of the context window reserved for generation. For comparison: OpenAI GPT-4o caps responses at 16 384 tokens, Anthropic Claude 3.5 at 8 192 tokens. You can override this by specifying `max_tokens` in the request body.
 
 **Q: How do AI agents (Kilo Code, Cursor, Claude Code, etc.) handle the context window?**
-A: Automatically. On connection, the agent issues `GET /v1/models`, receives `context_length = 65536` for each model, and configures its internal context compression threshold. No manual configuration is required — the agent trims conversation history automatically as the limit approaches.
+A: Automatically. On connection, the agent issues `GET /v1/models`, receives `context_length = 128000` for each model, and configures its internal context compression threshold. No manual configuration is required — the agent trims conversation history automatically as the limit approaches.
 
 **Q: When does the key duration start?**
 A: From the **first API request**, not from the purchase date.
@@ -959,7 +1047,7 @@ A: Not in the current version. Only text models are available.
 A: Via [@ai_rapi_bot](https://t.me/ai_rapi_bot) → **My Keys**.
 
 **Q: Does it work with LangChain / LlamaIndex / AutoGen?**
-A: Yes — set `base_url = "https://n8n.ruscapi.ru/webhook/v1"` and your key.
+A: Yes — set `base_url = "https://api.ruscapi.ru/v1"` and your key.
 
 **Q: What happens if a provider is unavailable?**
 A: The gateway automatically falls back to a reserve provider.
