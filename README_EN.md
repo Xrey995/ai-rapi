@@ -84,9 +84,9 @@ All plans include **unlimited token usage**. The only difference between plans i
 | Plan | Requests/min | Context Window | Max Response | Duration |
 |------|-------------|----------------|--------------|----------|
 | 🟢 **Start** | 5 RPM | 128 000 tokens | 65 536 tokens | 30 days |
-| 🔵 **Business** | 15 RPM | 128 000 tokens | 65 536 tokens | 30 days |
-| 🟣 **Pro** | 30 RPM | 128 000 tokens | 65 536 tokens | 30 days |
-| ⭐ **Ultra** | 60 RPM | 128 000 tokens | 65 536 tokens | 30 days |
+| 🔵 **Business** | 10 RPM | 128 000 tokens | 65 536 tokens | 30 days |
+| 🟣 **Pro** | 15 RPM | 128 000 tokens | 65 536 tokens | 30 days |
+| ⭐ **Ultra** | 30 RPM | 128 000 tokens | 65 536 tokens | 30 days |
 
 > Duration starts from the **first API request**, not from purchase date.
 >
@@ -982,9 +982,9 @@ curl https://api.ruscapi.ru/v1/chat/completions \
 | Plan | Req/min | Context Window | Max Response | Token Billing | Duration |
 |------|---------|----------------|--------------|---------------|----------|
 | 🟢 Start | 5 | 128 000 tokens | 65 536 tokens | ♾️ Unlimited | 30 days |
-| 🔵 Business | 15 | 128 000 tokens | 65 536 tokens | ♾️ Unlimited | 30 days |
-| 🟣 Pro | 30 | 128 000 tokens | 65 536 tokens | ♾️ Unlimited | 30 days |
-| ⭐ Ultra | 60 | 128 000 tokens | 65 536 tokens | ♾️ Unlimited | 30 days |
+| 🔵 Business | 10 | 128 000 tokens | 65 536 tokens | ♾️ Unlimited | 30 days |
+| 🟣 Pro | 15 | 128 000 tokens | 65 536 tokens | ♾️ Unlimited | 30 days |
+| ⭐ Ultra | 30 | 128 000 tokens | 65 536 tokens | ♾️ Unlimited | 30 days |
 | 🧪 Trial | 5 | 128 000 tokens | 65 536 tokens | ♾️ Unlimited | 24 hours |
 
 > **Context Window (128 000 tokens)** — combined limit for a single API call: all conversation messages (system prompt + history + current request) and the model response must not exceed this value in total.
