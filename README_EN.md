@@ -1,6 +1,9 @@
 [🇷🇺 Русский](README.md) | 🇬🇧 English
 
 ---
+# THE PROJECT IS NO LONGER SUPPORTED AND HAS BEEN MOVED TO THE ARCHIVE.
+
+
 # Ai RAPI Unlimited LLMs
 ### OpenAI-Compatible API Gateway — Unlimited Tokens, Fixed Price
 
